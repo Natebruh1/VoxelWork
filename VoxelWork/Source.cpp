@@ -64,8 +64,9 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 
-	//Enable Depth Testing
+	//Enable Depth Testing and backface culling
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
 	// Load Shaders into memory
 	ResourceManager::LoadShader("tri.vs", "tri.ps", nullptr, "triangle");
