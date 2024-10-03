@@ -158,7 +158,7 @@ void chunk::updateGeom()
 		}
 	}
 	
-
+	vertices.clear();
 	///// ----PART 2 GREEDYMESH---- /////
 	for (int i = 0; i < 6; i++) //Don't use auto& i here for readability ~ Once for each axis (+ve and -ve)
 	{
@@ -237,11 +237,40 @@ void chunk::updateGeom()
 						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f));
 						//Bottom Right
 						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane+1.f));
+						break;
 					case 4: //Y-Up Planes
-						
+						//TRIANGLE 1
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h));
+						//Top Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)plane, (float)quad.y));
+						//Top Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y));
+						//TRIANGLE 2
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h));
+						//Top Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y));
+						//Bottom Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y + (float)quad.h));
 
 						break;
 					case 5: //Y-Down Planes
+
+						//TRIANGLE 1
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)plane+1.f, (float)quad.y + (float)quad.h));
+						//Top Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)plane+1.f, (float)quad.y));
+						//Top Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane+1.f, (float)quad.y));
+						//TRIANGLE 2
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)plane+1.f, (float)quad.y + (float)quad.h));
+						//Top Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane+1.f, (float)quad.y));
+						//Bottom Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane+1.f, (float)quad.y + (float)quad.h));
 						break;
 					}
 					//vertices.push_back(glm::vec3(quad.x,3,4))

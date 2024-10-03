@@ -7,5 +7,5 @@ uniform mat4 projection;
 void main()
 {
     gl_Position = projection * view * transform * vec4(aPos, 1.0);
-    zDepth=((aPos.z)+1.0)*0.5;
+    zDepth=((aPos.z)+1.0)*(1.0/8.0);
 }

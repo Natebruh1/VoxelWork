@@ -2,12 +2,19 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <iostream>
-
+#include <sstream>
 
 #include "ResourceManager.h"
 #include "camera.h"
 
 #include "chunk.h"
+
+//Meta-Game Consts
+const std::string GAMENAME = "Voxel Test";
+const std::string VERSION = "0.0.1";
+
+//
+
 
 
 GLFWwindow* window = nullptr;
@@ -134,31 +141,28 @@ void Tick()
 	chunk* testChunk;
 	bool chunkMade = false;
 	testChunk = new chunk();
+	testChunk->createFullChunk();
+
+	//Window Title Stringstream (Credit : https://stackoverflow.com/questions/18412120/displaying-fps-in-glfw-window-title)
+	std::stringstream title;
+	float titleUpdateTime=0.f;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		//PROCESS
 		//UPDATE
 		//DRAW
-
-		if (!chunkMade)
-		{
-			if (deltaTime > 0.f) totalCount += deltaTime;
-			if (totalCount > 2.0f)
-			{
-				float x = glfwGetTime() - lastFrame; //Deltatime
-				std::cout << x << std::endl;
-				
-				testChunk->createFullChunk();
-				std::cout << glfwGetTime() - lastFrame-x << std::endl; //Time passed since deltatime
-				chunkMade = true;
-				
-			}
-		}
-		
-
 		deltaTime = glfwGetTime() - lastFrame;
 		lastFrame = glfwGetTime();
-
+		titleUpdateTime += deltaTime;
+		//Update Window Title
+		if (titleUpdateTime > .5f)
+		{
+			title << GAMENAME << " " << VERSION << " | " << (float)1.f / deltaTime << " FPS |";
+			glfwSetWindowTitle(window, title.str().c_str());
+			title.str(std::string()); // Update the title every 0.5 seconds
+			titleUpdateTime = 0.f;
+		}
 		
 		
 		//Process Input
@@ -169,9 +173,15 @@ void Tick()
 		view = currentCamera->cameraView;
 		currentCamera->tick();
 
+
 		//Update Scene
 		testChunk->deleteBlock(0, 0, 1);
+		testChunk->deleteBlock(0, 1, 1);
+		testChunk->deleteBlock(0, 1, 2);
+		testChunk->deleteBlock(1, 1, 2);
 		testChunk->deleteBlock(3, 0, 0);
+
+		
 		testChunk->tick();
 		
 		
@@ -181,21 +191,7 @@ void Tick()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-		//ResourceManager::GetShader("triangle")->Use(); //Select and use (via glUseProgram) the correct shader.
 
-		////Transform the trans matrix (model matrix)
-		//trans = glm::rotate(trans, glm::radians(-55.0f)*0.001f, glm::vec3(0.0f, 1.f, 0.0f));
-		//trans = glm::translate(trans, glm::vec3(0.f, 0.f, -0.0001f));
-
-		//// --Bind Uniforms--
-		//// In this case our triangle only has 3 Uniforms, and they are all matrices.
-		//(*ResourceManager::GetShader("triangle")).SetMatrix4("transform", trans);
-		//(*ResourceManager::GetShader("triangle")).SetMatrix4("view", view);
-		//(*ResourceManager::GetShader("triangle")).SetMatrix4("projection", proj);
-
-
-		//glBindVertexArray(testTriVAO); //Now bind openGL to the correct vertex array
-		//glDrawArrays(GL_TRIANGLES, 0, 3); // Draw a triangle (starting at index 0 and increasing to 3 verts)
 
 
 		testChunk->render(*currentCamera);
