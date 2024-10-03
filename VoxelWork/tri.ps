@@ -1,0 +1,8 @@
+#version 330 core
+out vec4 FragColor;
+in float zDepth;
+void main()
+{
+    vec3 buildColor=vec3(1.0f*zDepth, 0.5f*zDepth, 0.2f*zDepth);
+    FragColor = vec4(buildColor, 1.0f);
+}
