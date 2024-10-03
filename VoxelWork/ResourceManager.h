@@ -4,12 +4,14 @@
 #define RESOURCE_MANAGER_H
 
 #include <map>
+#include <vector>
 #include <string>
 
 #include <glad/glad.h>
 
 #include "Texture.h"
 #include "Shader.h"
+#include "SparseBindlessTextureArray.h"
 
 
 // A static singleton ResourceManager class that hosts several
@@ -23,6 +25,7 @@ public:
     // resource storage
     static std::map<std::string, Shader>    Shaders;
     static std::map<std::string, Texture> Textures;
+    static std::map<std::string, SparseBindlessTextureArray> SBTextures;
     // loads (and generates) a shader program from file loading vertex, fragment (and geometry) shader's source code. If gShaderFile is not nullptr, it also loads a geometry shader
     static Shader    LoadShader(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile, std::string name);
     // retrieves a stored sader
@@ -32,6 +35,10 @@ public:
     // retrieves a stored texture
     static Texture* GetTexture(std::string name);
     // properly de-allocates all loaded resources
+
+    static SparseBindlessTextureArray LoadSBTexArray(std::vector<const char*> files, bool alpha, std::string name);
+    static SparseBindlessTextureArray* GetSBTexArray(std::string name);
+
     static void      Clear();
 private:
     // private constructor, that is we do not want any actual resource manager objects. Its members and functions should be publicly available (static).
@@ -40,6 +47,7 @@ private:
     static Shader    loadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile = nullptr);
     // loads a single texture from file
     static Texture loadTextureFromFile(const char* file, bool alpha);
+    static SparseBindlessTextureArray loadSBTexArrayFromFile(std::vector<const char*> files, bool alpha);
 };
 
 #endif

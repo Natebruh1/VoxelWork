@@ -6,9 +6,9 @@
 #include "stb_image.h"
 
 // Instantiate static variables
-std::map<std::string, Texture>    ResourceManager::Textures;
-std::map<std::string, Shader>       ResourceManager::Shaders;
-
+std::map<std::string, Texture>                          ResourceManager::Textures;
+std::map<std::string, Shader>                           ResourceManager::Shaders;
+std::map<std::string, SparseBindlessTextureArray>       ResourceManager::SBTextures;
 
 Shader ResourceManager::LoadShader(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile, std::string name)
 {
@@ -32,14 +32,28 @@ Texture* ResourceManager::GetTexture(std::string name)
     return &Textures[name];
 }
 
+SparseBindlessTextureArray ResourceManager::LoadSBTexArray(std::vector<const char*> files, bool alpha, std::string name)
+{
+    SBTextures[name] = loadSBTexArrayFromFile(files, alpha);
+    return SBTextures[name];
+}
+
+SparseBindlessTextureArray* ResourceManager::GetSBTexArray(std::string name)
+{
+    return &SBTextures[name];
+}
+
 void ResourceManager::Clear()
 {
-    // (properly) delete all shaders	
+    //Delete all shaders	
     for (auto iter : Shaders)
         glDeleteProgram(iter.second.ID);
-    // (properly) delete all textures
+    //Delete all textures
     for (auto iter : Textures)
         glDeleteTextures(1, &iter.second.ID);
+
+    //Delete all Sparse Bindless Texture Arrays
+    //It is skipped since they have a destructor which has custom functionality - they should clear as soon as they go out of scope
 }
 
 Shader ResourceManager::loadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile)
@@ -102,5 +116,32 @@ Texture ResourceManager::loadTextureFromFile(const char* file, bool alpha)
     texture.Generate(width, height, data);
     // and finally free image data
     stbi_image_free(data);
+    return texture;
+}
+
+SparseBindlessTextureArray ResourceManager::loadSBTexArrayFromFile(std::vector<const char*> files, bool alpha)
+{
+    SparseBindlessTextureArray texture;
+    if (alpha)
+    {
+        texture.internalFormat = GL_RGBA;
+        texture.imageFormat = GL_RGBA;
+    }
+    // load image
+    std::vector<int> width, height, nrChannels;
+    std::vector<unsigned char*> textures;
+    for (int i = 0; i < files.size();i++)
+    {
+        textures.push_back( stbi_load(files[i], &width[i], &height[i], &nrChannels[i], STBI_rgb_alpha));
+    }
+    if (textures.size() == 0) return texture; //Early return so that all data is initialized
+    // now generate texture
+    texture.Generate(width[0], height[0], textures.size(), textures);
+    // and finally free image data
+    for (auto& tex : textures)
+    {
+        stbi_image_free(tex);
+    }
+    
     return texture;
 }

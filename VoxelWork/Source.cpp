@@ -9,6 +9,7 @@
 
 #include "chunk.h"
 
+
 //Meta-Game Consts
 const std::string GAMENAME = "Voxel Test";
 const std::string VERSION = "0.0.1";
@@ -91,8 +92,8 @@ int main()
 void init_GL()
 {
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 bool init_Window(GLFWwindow** toInit)
