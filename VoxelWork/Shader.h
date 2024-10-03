@@ -37,6 +37,7 @@ public:
 
     void    SetVector2i(const char* name, int x, int y, bool useShader = false);
     void    SetVector2i(const char* name, const glm::ivec2& value, bool useShader = false);
+    void    SetBindlessTextureHandle(const char* name, GLuint64 value, bool useShader = false);
 private:
     // checks if compilation or linking failed and if so, print the error logs
     void    checkCompileErrors(unsigned int object, std::string type);

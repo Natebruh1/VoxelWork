@@ -114,6 +114,13 @@ void Shader::SetVector2i(const char* name, const glm::ivec2& value, bool useShad
     glUniform2i(glGetUniformLocation(this->ID, name), value.x, value.y);
 }
 
+void Shader::SetBindlessTextureHandle(const char* name, GLuint64 value, bool useShader)
+{
+    if (useShader)
+        this->Use();
+    glUniformHandleui64ARB(glGetUniformLocation(this->ID, name), value);
+}
+
 
 void Shader::checkCompileErrors(unsigned int object, std::string type)
 {
