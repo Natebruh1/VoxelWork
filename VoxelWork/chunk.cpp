@@ -79,10 +79,10 @@ void chunk::updateGeom()
 					axis_col[z + (y * 18)].data |= (0b1 << x);
 
 					// Y axis
-					axis_col[y + (x * 18)+ chunk_size_p2].data |= (0b1 << z);
+					axis_col[x + (y * 18)+ chunk_size_p2].data |= (0b1 << z);
 
 					// Z axis
-					axis_col[z + (x * 18) + chunk_size_p2*2].data |= (0b1 << y);
+					axis_col[x + (z * 18) + chunk_size_p2*2].data |= (0b1 << y);
 				}
 			}
 		}
@@ -166,6 +166,7 @@ void chunk::updateGeom()
 		{
 			if (auto search = data[i].find(plane); search != data[i].end())
 			{
+				
 				std::vector<greedyQuad> quads = greedyMeshBinaryPlane(data[i][plane]); //Plane found inside data, begin greedy meshing!
 				//Now add to vertices based upon direction
 				for (auto& quad : quads)
@@ -175,28 +176,72 @@ void chunk::updateGeom()
 					case 0: //X-Forwards Planes
 						//TRIANGLE 1
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)plane+1.f, (float)quad.y + (float)quad.h, (float)quad.x));
+						vertices.push_back(glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x));
 						//Top Left
-						vertices.push_back(glm::vec3((float)plane+1.f, (float)quad.y, (float)quad.x));
+						vertices.push_back(glm::vec3((float)plane, (float)quad.y, (float)quad.x));
 						//Top Right
-						vertices.push_back(glm::vec3((float)plane+1.f, (float)quad.y, (float)quad.x + (float)quad.w));
+						vertices.push_back(glm::vec3((float)plane, (float)quad.y, (float)quad.x + (float)quad.w));
 						//TRIANGLE 2
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)plane+1.f, (float)quad.y + (float)quad.h, (float)quad.x));
+						vertices.push_back(glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x));
 						//Top Right
-						vertices.push_back(glm::vec3((float)plane+1.f, (float)quad.y, quad.x + (float)quad.w));
+						vertices.push_back(glm::vec3((float)plane, (float)quad.y, quad.x + (float)quad.w));
 						//Bottom Right
-						vertices.push_back(glm::vec3((float)plane+1.f, (float)quad.y + (float)quad.h, quad.x + (float)quad.w));
+						vertices.push_back(glm::vec3((float)plane, (float)quad.y + (float)quad.h, quad.x + (float)quad.w));
 						break;
 					case 1: //X-Backwards Planes
+						//TRIANGLE 1
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)plane+1.f, (float)quad.y + (float)quad.h, (float)quad.x));
+						//Top Left
+						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x));
+						//Top Right
+						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x + (float)quad.w));
+						//TRIANGLE 2
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x));
+						//Top Right
+						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y, quad.x + (float)quad.w));
+						//Bottom Right
+						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, quad.x + (float)quad.w));
 						break;
-					case 2: //Y-Up Planes
+					case 2: //Z-Right Planes
+						//TRIANGLE 1
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane));
+						//Top Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y, (float)plane));
+						//Top Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane));
+						//TRIANGLE 2
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane));
+						//Top Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane));
+						//Bottom Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane));
+
 						break;
-					case 3: //Y-Down Planes
+					case 3: //Z-Left Planes
+						//TRIANGLE 1
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane+1.f));
+						//Top Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y, (float)plane+1.f));
+						//Top Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f));
+						//TRIANGLE 2
+						//Bottom Left
+						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane+1.f));
+						//Top Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f));
+						//Bottom Right
+						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane+1.f));
+					case 4: //Y-Up Planes
+						
+
 						break;
-					case 4: //Z-Right Planes
-						break;
-					case 5: //Z-Left Planes
+					case 5: //Y-Down Planes
 						break;
 					}
 					//vertices.push_back(glm::vec3(quad.x,3,4))

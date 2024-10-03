@@ -56,6 +56,10 @@ int main()
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouse_callback);
 
+
+	//Enable Depth Testing
+	glEnable(GL_DEPTH_TEST);
+
 	// Load Shaders into memory
 	ResourceManager::LoadShader("tri.vs", "tri.ps", nullptr, "triangle");
 	
@@ -167,13 +171,14 @@ void Tick()
 
 		//Update Scene
 		testChunk->deleteBlock(0, 0, 1);
+		testChunk->deleteBlock(3, 0, 0);
 		testChunk->tick();
 		
 		
 		//Render here
 
 		glClearColor(0.2f, 0.55f, 0.75f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 		//ResourceManager::GetShader("triangle")->Use(); //Select and use (via glUseProgram) the correct shader.
