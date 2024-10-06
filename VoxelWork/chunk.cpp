@@ -1,6 +1,10 @@
 #include "chunk.h"
 
 
+//Instantiate Static Variables
+std::vector<uint16>			chunk::knownTextures;
+SparseBindlessTextureArray	chunk::ChunkTextures;
+
 chunk::chunk()
 {
 	chunkData = new block[16 * 16 * 16];
@@ -62,8 +66,17 @@ void chunk::createFullChunk()
 
 void chunk::updateGeom()
 {
+	if (ChunkTextures.isGenerated == false)
+	{
+		
+		ChunkTextures.Generate(128, 128, 6); //WIP 6 should be replaced with 6* blockLibrary.size();
+	}
 	///// ----PART 1 BUILD CHUNKMESH---- /////
-	
+
+	//Clear blockID's so we can recreate textures later
+
+	knownTextures.clear();
+
 	//Create chunkSolid
 	for (uint32 x = 0; x < CHUNKSIZE+2; x++)
 	{
@@ -71,6 +84,27 @@ void chunk::updateGeom()
 		{
 			for (uint32 z = 0; z < CHUNKSIZE+2; z++)
 			{
+				//Add block ID to texture pool
+				if (x < 16 and y < 16 and z < 16)
+				{
+
+					if (std::find(knownTextures.begin(), knownTextures.end(), getBlock(x, y, z).id) == knownTextures.end()) //If we haven't yet found this ID then add it
+					{
+						if (getBlock(x, y, z).solid == false) continue; //No Texture support for unsolid blocks
+						knownTextures.push_back(getBlock(x, y, z).id);
+						ChunkTextures.addImage("textures/box.png"); //Again, need to use lookup in future
+						ChunkTextures.addImage("textures/box.png");
+						ChunkTextures.addImage("textures/box.png");
+						ChunkTextures.addImage("textures/box.png");
+						ChunkTextures.addImage("textures/box.png");
+						ChunkTextures.addImage("textures/box.png"); //Once for each axis
+					}
+				}
+
+
+
+
+
 				//If block is solid
 				if (getBlock(x-1,y-1,z-1).solid) //If returned block is solid
 				{
@@ -159,6 +193,7 @@ void chunk::updateGeom()
 	}
 	
 	vertices.clear();
+	chunkQuads.clear();
 	///// ----PART 2 GREEDYMESH---- /////
 	for (int i = 0; i < 6; i++) //Don't use auto& i here for readability ~ Once for each axis (+ve and -ve)
 	{
@@ -166,8 +201,10 @@ void chunk::updateGeom()
 		{
 			if (auto search = data[i].find(plane); search != data[i].end())
 			{
+				std::vector<greedyQuad> quads= greedyMeshBinaryPlane(data[i][plane]); //Plane found inside data, begin greedy meshing!
+				chunkQuads.insert(chunkQuads.end(), std::make_move_iterator(quads.begin()),
+					std::make_move_iterator(quads.end()));
 				
-				std::vector<greedyQuad> quads = greedyMeshBinaryPlane(data[i][plane]); //Plane found inside data, begin greedy meshing!
 				//Now add to vertices based upon direction
 				for (auto& quad : quads)
 				{
@@ -176,85 +213,145 @@ void chunk::updateGeom()
 					case 0: //X-Forwards Planes
 						//TRIANGLE 1
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x));
+						vertices.push_back({ glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x), //Position
+							0,																						//Axis
+							{0,quad.h}});																			//Width/Height
 						//Top Left
-						vertices.push_back(glm::vec3((float)plane, (float)quad.y, (float)quad.x));
+						vertices.push_back({glm::vec3((float)plane, (float)quad.y, (float)quad.x),
+							0,
+							{ 0,0 }});
 						//Top Right
-						vertices.push_back(glm::vec3((float)plane, (float)quad.y, (float)quad.x + (float)quad.w));
+						vertices.push_back({ glm::vec3((float)plane, (float)quad.y, (float)quad.x + (float)quad.w),
+							0,
+							{quad.w,0}});
 						//TRIANGLE 2
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x));
+						vertices.push_back({glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x),
+							0,
+							{0,quad.h}});
 						//Top Right
-						vertices.push_back(glm::vec3((float)plane, (float)quad.y, quad.x + (float)quad.w));
+						vertices.push_back({glm::vec3((float)plane, (float)quad.y, quad.x + (float)quad.w),
+							0,
+							{quad.w,0} });
 						//Bottom Right
-						vertices.push_back(glm::vec3((float)plane, (float)quad.y + (float)quad.h, quad.x + (float)quad.w));
+						vertices.push_back({glm::vec3((float)plane, (float)quad.y + (float)quad.h, quad.x + (float)quad.w),
+							0,
+							{quad.h,quad.h}});
 						break;
 					case 1: //X-Backwards Planes
 						//TRIANGLE 1
 						//Top Right
-						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x + (float)quad.w));
+						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x + (float)quad.w),
+							1,
+							{quad.w,0}});
 						//Top Left
-						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x));
+						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x),
+							1,
+							{0,0}});
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x));
+						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x),
+							1,
+							{0,quad.h}});
 
 						//TRIANGLE 2
 						//Bottom Right
-						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, quad.x + (float)quad.w));
+						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, quad.x + (float)quad.w),
+							1,
+							{quad.w,quad.h}});
 						//Top Right
-						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y, quad.x + (float)quad.w));
+						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y, quad.x + (float)quad.w),
+							1,
+							{quad.w,0}});
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x));
+						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x),
+							1,
+							{0,quad.h}});
 						break;
 					case 2: //Z-Right Planes
 						//TRIANGLE 1
 						//Top Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane),
+							2,
+							{quad.w,0}});
 						//Top Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y, (float)plane));
+						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y, (float)plane),
+							2,
+							{0,0}});
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane));
+						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane),
+							2,
+							{0,quad.h}});
 
 						//TRIANGLE 2
 						//Bottom Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane),
+							2,
+							{quad.w,quad.h}});
 						//Top Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane),
+							2,
+							{quad.w,0}});
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane));
+						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane),
+							2,
+							{0,quad.h}});
 
 						break;
 					case 3: //Z-Left Planes
 						//TRIANGLE 1
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane+1.f));
+						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane+1.f),
+							3,
+							{0,quad.h}});
 						//Top Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y, (float)plane+1.f));
+						vertices.push_back({ glm::vec3((float)quad.x, (float)quad.y, (float)plane + 1.f),
+							3,
+							{0,0} });
 						//Top Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f),
+							3,
+							{quad.w,0}});
 						//TRIANGLE 2
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane+1.f));
+						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane+1.f),
+							3,
+							{0,quad.h}});
 						//Top Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f),
+							3,
+							{quad.w,0}});
 						//Bottom Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane+1.f));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane+1.f),
+							3,
+							{quad.w,quad.h}});
 						break;
 					case 4: //Y-Up Planes
 						//TRIANGLE 1
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h));
+						vertices.push_back({glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h),
+							4,
+							{0,quad.h}});
 						//Top Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)plane, (float)quad.y));
+						vertices.push_back({glm::vec3((float)quad.x, (float)plane, (float)quad.y),
+							4,
+							{0,0}});
 						//Top Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y),
+							4,
+							{quad.w,0}});
 						//TRIANGLE 2
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h));
+						vertices.push_back({glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h),
+							4,
+							{0,quad.h}});
 						//Top Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y),
+							4,
+							{quad.w,0}});
 						//Bottom Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y + (float)quad.h));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y + (float)quad.h),
+							4,
+							{quad.w,quad.h}});
 
 						break;
 					case 5: //Y-Down Planes
@@ -262,23 +359,35 @@ void chunk::updateGeom()
 						//TRIANGLE 1
 						
 						//Top Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y),
+							5,
+							{quad.w,0}});
 						
 						//Top Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)plane+1.f, (float)quad.y));
+						vertices.push_back({glm::vec3((float)quad.x, (float)plane+1.f, (float)quad.y),
+							5,
+							{0,0}});
 						
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y + (float)quad.h));
+						vertices.push_back({glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y + (float)quad.h),
+							5,
+							{0,quad.h}});
 
 						//TRIANGLE 2
 						//Bottom Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y + (float)quad.h));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y + (float)quad.h),
+							5,
+							{quad.w,quad.h}});
 
 						//Top Right
-						vertices.push_back(glm::vec3((float)quad.x + (float)quad.w, (float)plane+1.f, (float)quad.y));
+						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane+1.f, (float)quad.y),
+							5,
+							{quad.w,0}});
 
 						//Bottom Left
-						vertices.push_back(glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y + (float)quad.h));
+						vertices.push_back({glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y + (float)quad.h),
+							5,
+							{0,quad.h}});
 						break;
 					}
 					//vertices.push_back(glm::vec3(quad.x,3,4))
@@ -463,6 +572,12 @@ void chunk::render(camera& currentCamera)
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 100.0f);
 	glm::mat4 view = currentCamera.cameraView;
 
+
+
+	//Make the texture resident
+	ChunkTextures.makeResident();
+	//ChunkTextures.makeNonResident();
+
 	//Transform the trans matrix (model matrix)
 	
 
@@ -471,6 +586,9 @@ void chunk::render(camera& currentCamera)
 	(*ResourceManager::GetShader("triangle")).SetMatrix4("transform", transform);
 	(*ResourceManager::GetShader("triangle")).SetMatrix4("view", view);
 	(*ResourceManager::GetShader("triangle")).SetMatrix4("projection", proj);
+	(*ResourceManager::GetShader("triangle")).SetBindlessTextureHandle("textureHandle", ChunkTextures.getBindlessHandle());
+	
+
 	glBindVertexArray(chunkVAO); //Now bind openGL to the correct vertex array
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size()+1); // Draw a triangle (starting at index 0 and increasing to 6 verts)
 }
@@ -485,11 +603,62 @@ unsigned int chunk::prepareRender()
 	glBindVertexArray(chunkVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float)*3, &vertices[0], GL_STATIC_DRAW);
+	auto size = (vertices.size() * sizeof(float) * 3) + (vertices.size() * sizeof(unsigned int) * 3);
+	glBufferData(GL_ARRAY_BUFFER, size, &vertices[0], GL_STATIC_DRAW);
 	
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	//Add vertex attributes
+	//Position
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertexData), (void*)0);
 	glEnableVertexAttribArray(0);
+	//Axis
+	glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, sizeof(vertexData), (void*)(offsetof(vertexData, axis)));
+	glEnableVertexAttribArray(1);
+	//TexCoords
+	glVertexAttribIPointer(2, 2, GL_UNSIGNED_INT, sizeof(vertexData), (void*)(offsetof(vertexData, texCoords)));
+	glEnableVertexAttribArray(2);
+	
+	;
+
+	GLuint texIndexSSBO;
+	glGenBuffers(1, &texIndexSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, texIndexSSBO);
+
+	//Find Exact amount of voxel textures we need to store in SSBO
+	uint32 totalTextures = knownTextures.size()*6; //One texture per face
+	
+
+	
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint16)* CHUNKSIZE * CHUNKSIZE * CHUNKSIZE *6, nullptr, GL_DYNAMIC_DRAW);
+
+	textureIndices.clear();
+	//Populate SSBO with texture indices and add the image data to the texture
+	for (int x = 0; x < CHUNKSIZE; x++)
+	{
+		for (int y = 0; y < CHUNKSIZE; y++)
+		{
+			for (int z = 0; z < CHUNKSIZE; z++)
+			{
+				textureIndices.push_back(0); //For now just push back texture 1, eventually will use lookup to map position to blocks
+				textureIndices.push_back(0);
+				textureIndices.push_back(0);
+				textureIndices.push_back(0);
+				textureIndices.push_back(0);
+				textureIndices.push_back(0);
+				
+			}
+		}
+	}
+
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, textureIndices.size() * sizeof(uint16), textureIndices.data());
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
+	//Unbind buffer
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+	
+
+
 
 	// the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind Array buffer

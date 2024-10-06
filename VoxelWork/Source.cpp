@@ -177,10 +177,10 @@ void Tick()
 
 
 		//Update Scene
-		testChunk->deleteBlock(0, 0, 1);
+		/*testChunk->deleteBlock(0, 0, 1);
 		testChunk->deleteBlock(0, 1, 1);
 		testChunk->deleteBlock(0, 1, 2);
-		testChunk->deleteBlock(1, 1, 2);
+		testChunk->deleteBlock(1, 1, 2);*/
 		testChunk->deleteBlock(3, 0, 0);
 
 		

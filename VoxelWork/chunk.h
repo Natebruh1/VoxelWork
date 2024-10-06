@@ -2,6 +2,7 @@
 #include "block.h"
 #include "node3D.h"
 #include "ResourceManager.h"
+#include "SparseBindlessTextureArray.h"
 #include "camera.h"
 #include <stdint.h>
 
@@ -9,6 +10,7 @@
 #include <map>
 #include <vector>
 #include <optional>
+#include <iterator>
 
 #include <iostream>
 using uint16 = uint16_t;
@@ -68,6 +70,15 @@ struct greedyQuad
     int h; //Height
 };
 
+
+struct vertexData
+{
+    glm::vec3 pos;
+    unsigned int axis;
+    glm::ivec2 texCoords;
+    
+};
+
 class chunk :
     public node3D
 {
@@ -100,7 +111,7 @@ public:
     
     
     
-    
+    std::vector<greedyQuad> chunkQuads;
 private: 
     bool geomUpdated = false; //If true then during the next tick we recreate chunk geometry
     // Data
@@ -113,8 +124,14 @@ private:
     //std::map<uint32,std::map<int,>> data[6]; //Array of 6 (one for each face of a cube) two-depth HashMaps
     std::map<int, std::map<int, std::vector<uint16>>> data;
     //std::map<int, std::vector<std::vector<uint16>>> data;
-    std::vector<glm::vec3> vertices;
+    std::vector<vertexData> vertices;
 
     unsigned int chunkVAO;
+
+
+    //Texturing
+    std::vector<uint16> textureIndices;
+    static std::vector<uint16>knownTextures; //std::vector of BlockID's, the idea is to reduce redundancy
+    static SparseBindlessTextureArray ChunkTextures; //Save's memory
 };
 
