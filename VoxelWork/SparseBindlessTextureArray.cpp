@@ -142,7 +142,10 @@ void SparseBindlessTextureArray::Generate(unsigned int width, unsigned int heigh
 
 void SparseBindlessTextureArray::allocatePage(GLint mipLevel, GLint xOffset, GLint yOffset, GLint zOffset, GLint width, GLint height, GLint depth)
 {
-    
+    if (width < 128 || height < 128)
+    {
+        std::cout << "ERROR, tried to allocate too small dimensions in sparse page" << std::endl;
+    }
     //Bind Texture and make Resident
     glBindTexture(GL_TEXTURE_2D_ARRAY, ID);
     

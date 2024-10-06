@@ -8,11 +8,11 @@
 #include "camera.h"
 
 #include "chunk.h"
+#include "globals.h"
 
-
-//Meta-Game Consts
+// Meta-Game Consts
 const std::string GAMENAME = "Voxel Test";
-const std::string VERSION = "0.0.1";
+const std::string VERSION = "0.0.2";
 
 //
 
@@ -67,11 +67,17 @@ int main()
 
 	//Enable Depth Testing and backface culling
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
 	// Load Shaders into memory
 	ResourceManager::LoadShader("tri.vs", "tri.ps", nullptr, "triangle");
 	
+
+
+	
+
 	// Create a new camera
 	currentCamera = new camera();
 	// --Loop--
@@ -182,7 +188,10 @@ void Tick()
 		testChunk->deleteBlock(0, 1, 2);
 		testChunk->deleteBlock(1, 1, 2);*/
 		testChunk->deleteBlock(3, 0, 0);
-
+		testChunk->deleteBlock(3, 0, 1);
+		testChunk->deleteBlock(0, 0, 3);
+		testChunk->deleteBlock(1, 0, 3);
+		testChunk->setBlock(2, 0, 0, 2);
 		
 		testChunk->tick();
 		

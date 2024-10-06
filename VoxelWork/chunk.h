@@ -3,6 +3,7 @@
 #include "node3D.h"
 #include "ResourceManager.h"
 #include "SparseBindlessTextureArray.h"
+#include "globals.h"
 #include "camera.h"
 #include <stdint.h>
 
@@ -92,7 +93,10 @@ public:
     unsigned int prepareRender();
     std::vector<greedyQuad> greedyMeshBinaryPlane(std::map<int, std::vector<uint16>>& inDat);
     std::vector<greedyQuad> greedyMeshBinaryPlane(std::vector<uint16>& inDat);
-    block getBlock(uint32 x, uint32 y, uint32 z);
+
+    //Block Editors
+    block& getBlock(uint32 x, uint32 y, uint32 z);
+    void setBlock(uint32 x, uint32 y, uint32 z, uint16 id);
 
     //Utility
     int trailingZeros(const uint16& intRef);
@@ -130,7 +134,7 @@ private:
 
 
     //Texturing
-    std::vector<uint16> textureIndices;
+    std::vector<uint32> textureIndices;
     static std::vector<uint16>knownTextures; //std::vector of BlockID's, the idea is to reduce redundancy
     static SparseBindlessTextureArray ChunkTextures; //Save's memory
 };

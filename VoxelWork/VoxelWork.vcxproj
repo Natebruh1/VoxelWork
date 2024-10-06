@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BlockLibrary.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="chunk.cpp" />
     <ClCompile Include="glad.c" />
@@ -153,8 +154,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="block.h" />
+    <ClInclude Include="BlockLibrary.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="chunk.h" />
+    <ClInclude Include="globals.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="node3D.h" />
     <ClInclude Include="ResourceManager.h" />

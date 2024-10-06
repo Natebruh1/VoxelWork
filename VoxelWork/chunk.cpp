@@ -69,13 +69,20 @@ void chunk::updateGeom()
 	if (ChunkTextures.isGenerated == false)
 	{
 		
-		ChunkTextures.Generate(128, 128, 6); //WIP 6 should be replaced with 6* blockLibrary.size();
+		ChunkTextures.Generate(128, 128, 6*blockLibrary.idBlockLookup.size()); //WIP 6 should be replaced with 6* blockLibrary.size();
 	}
 	///// ----PART 1 BUILD CHUNKMESH---- /////
 
 	//Clear blockID's so we can recreate textures later
 
 	knownTextures.clear();
+	//knownTextures.push_back(0); //Add air
+	//ChunkTextures.addImage(blockLibrary.BlockTextures["Air"][0]); //Add one texture per axis
+	//ChunkTextures.addImage(blockLibrary.BlockTextures["Air"][1]);
+	//ChunkTextures.addImage(blockLibrary.BlockTextures["Air"][2]);
+	//ChunkTextures.addImage(blockLibrary.BlockTextures["Air"][3]);
+	//ChunkTextures.addImage(blockLibrary.BlockTextures["Air"][4]);
+	//ChunkTextures.addImage(blockLibrary.BlockTextures["Air"][5]);
 
 	//Create chunkSolid
 	for (uint32 x = 0; x < CHUNKSIZE+2; x++)
@@ -92,12 +99,16 @@ void chunk::updateGeom()
 					{
 						if (getBlock(x, y, z).solid == false) continue; //No Texture support for unsolid blocks
 						knownTextures.push_back(getBlock(x, y, z).id);
-						ChunkTextures.addImage("textures/box.png"); //Again, need to use lookup in future
-						ChunkTextures.addImage("textures/box.png");
-						ChunkTextures.addImage("textures/box.png");
-						ChunkTextures.addImage("textures/box.png");
-						ChunkTextures.addImage("textures/box.png");
-						ChunkTextures.addImage("textures/box.png"); //Once for each axis
+						std::string blockName = blockLibrary.idBlockLookup[getBlock(x, y, z).id]; // Get the blockname
+
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][0]); //Add one texture per axis
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][1]);
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][2]);
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][3]);
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][4]);
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][5]);
+
+						
 					}
 				}
 
@@ -236,7 +247,7 @@ void chunk::updateGeom()
 						//Bottom Right
 						vertices.push_back({glm::vec3((float)plane, (float)quad.y + (float)quad.h, quad.x + (float)quad.w),
 							0,
-							{quad.h,quad.h}});
+							{quad.w,quad.h}});
 						break;
 					case 1: //X-Backwards Planes
 						//TRIANGLE 1
@@ -526,11 +537,17 @@ std::vector<greedyQuad> chunk::greedyMeshBinaryPlane(std::vector<uint16>& inDat)
 	return quads;
 }
 
-block chunk::getBlock(uint32 x, uint32 y, uint32 z)
+block& chunk::getBlock(uint32 x, uint32 y, uint32 z)
 {
 	block EmptyBlock = { 0,0 };
 	if (x < 0 or y < 0 or z < 0 or x>15 or y>15 or z>15) return EmptyBlock;
 	return *(chunkData+z+(y*CHUNKSIZE)+(x*CHUNKSIZE*CHUNKSIZE));
+}
+
+void chunk::setBlock(uint32 x, uint32 y, uint32 z, uint16 id)
+{
+	getBlock(x, y, z).id = id;
+	
 }
 
 int chunk::trailingZeros(const uint16& intRef)
@@ -576,7 +593,7 @@ void chunk::render(camera& currentCamera)
 
 	//Make the texture resident
 	ChunkTextures.makeResident();
-	//ChunkTextures.makeNonResident();
+	
 
 	//Transform the trans matrix (model matrix)
 	
@@ -629,7 +646,7 @@ unsigned int chunk::prepareRender()
 	
 
 	
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint16)* CHUNKSIZE * CHUNKSIZE * CHUNKSIZE *6, nullptr, GL_DYNAMIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32)* CHUNKSIZE * CHUNKSIZE * CHUNKSIZE *6, nullptr, GL_DYNAMIC_DRAW);
 
 	textureIndices.clear();
 	//Populate SSBO with texture indices and add the image data to the texture
@@ -639,18 +656,30 @@ unsigned int chunk::prepareRender()
 		{
 			for (int z = 0; z < CHUNKSIZE; z++)
 			{
-				textureIndices.push_back(0); //For now just push back texture 1, eventually will use lookup to map position to blocks
-				textureIndices.push_back(0);
-				textureIndices.push_back(0);
-				textureIndices.push_back(0);
-				textureIndices.push_back(0);
-				textureIndices.push_back(0);
+				if (getBlock(x, y, z).solid == false)
+				{
+					textureIndices.push_back(uint32(-1)); //For now just push back texture 0, eventually will use lookup to map position to blocks
+					textureIndices.push_back(uint32(-1));
+					textureIndices.push_back(uint32(-1));
+					textureIndices.push_back(uint32(-1));
+					textureIndices.push_back(uint32(-1));
+					textureIndices.push_back(uint32(-1));
+					continue;
+				}
+				auto search = std::find(knownTextures.begin(), knownTextures.end(), getBlock(x, y, z).id);
+				auto index = std::distance(knownTextures.begin(), search);
+				textureIndices.push_back(uint32((index * 6) + 0)); //For now just push back texture 0, eventually will use lookup to map position to blocks
+				textureIndices.push_back(uint32((index * 6) + 1));
+				textureIndices.push_back(uint32((index * 6) + 2));
+				textureIndices.push_back(uint32((index * 6) + 3));
+				textureIndices.push_back(uint32((index * 6) + 4));
+				textureIndices.push_back(uint32((index * 6) + 5));
 				
 			}
 		}
 	}
 
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, textureIndices.size() * sizeof(uint16), textureIndices.data());
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, textureIndices.size() * sizeof(uint32), textureIndices.data());
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
 	//Unbind buffer
