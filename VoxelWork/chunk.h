@@ -13,6 +13,11 @@
 #include <iterator>
 
 #include <iostream>
+
+//Saving/Serializing
+#include "json.hpp"
+#include <fstream>
+
 using uint16 = uint16_t;
 using uint32 = uint32_t;
 struct chunk_padded {
@@ -107,6 +112,8 @@ public:
     virtual void tick() override;
     virtual void render(camera& currentCamera) override;
 
+    //Disk-Managment
+    void serialize(nlohmann::json& data);
     // Con/Decon
     ~chunk();
     chunk();

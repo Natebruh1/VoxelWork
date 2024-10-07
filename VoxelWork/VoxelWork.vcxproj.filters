@@ -25,6 +25,9 @@
     <Filter Include="Shaders\Pixel">
       <UniqueIdentifier>{9ce5e98c-1847-45be-a6c1-f81d8708ba9a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Other Libraries">
+      <UniqueIdentifier>{5ea8e508-250e-48ff-b291-75c92c148cb2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -106,6 +109,9 @@
     </ClInclude>
     <ClInclude Include="globals.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Other Libraries</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

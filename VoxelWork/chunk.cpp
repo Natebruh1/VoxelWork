@@ -11,6 +11,36 @@ chunk::chunk()
 	
 }
 
+void chunk::serialize(nlohmann::json& data)
+{
+	//ChunkPosition
+
+	//BlockData
+	
+	for (int x = 0; x < 16; x++)
+	{
+		for (int y = 0; y < 16; y++)
+		{
+			for (int z = 0; z < 16; z++)
+			{
+				data["Blocks"].push_back((uint32)(chunkData + (z)+(16 * y) + (256 * x))->id);
+			}
+		}
+	}
+
+	
+
+
+	//Temp Save
+	std::ofstream myfile("chunk.dat");
+	if (myfile.is_open())
+	{
+		myfile << data;
+		myfile.close();
+	}
+	;
+}
+
 chunk::~chunk()
 {
 	
@@ -124,7 +154,7 @@ void chunk::updateGeom()
 					}
 				}
 
-
+				
 
 
 				checkSolid:

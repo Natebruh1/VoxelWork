@@ -164,6 +164,7 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="chunk.h" />
     <ClInclude Include="globals.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="node.h" />
     <ClInclude Include="node3D.h" />
     <ClInclude Include="ResourceManager.h" />

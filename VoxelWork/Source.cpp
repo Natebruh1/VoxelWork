@@ -95,12 +95,17 @@ int main()
 	
 	// --Shutdown--
 
+	//Save remaining chunks
+	nlohmann::json data;
+	testChunk->serialize(data);
+
+
 	//Definite Deletes
 	delete currentCamera;
 	delete currentScene;
 	//Temporary Deletes
 
-
+	
 	glfwTerminate();
 	return 0;
 }
