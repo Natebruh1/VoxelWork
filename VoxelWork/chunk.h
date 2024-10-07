@@ -119,7 +119,7 @@ private:
     bool geomUpdated = false; //If true then during the next tick we recreate chunk geometry
     // Data
     block* chunkData; //Defines the chunk as created by blocks. Includes extraneous data.
-    uint16 chunkSolid[16 * 16]; //x*y,z in the bits. //Defines the chunk as solid or non solid blocks (used for binary greedy meshing)
+    
 
     chunk_p axis_col[3*chunk_size_p2]; //We want to split the chunk into 3 separate chunks with data formatted for each axis
     chunk_p mask_col[3 * chunk_size_p2 * 2]; //The same as above except we want one mask for each face rather than each axis

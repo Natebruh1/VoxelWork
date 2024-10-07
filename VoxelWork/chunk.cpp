@@ -21,24 +21,29 @@ chunk::~chunk()
 
 void chunk::deleteBlock(uint16 x, uint16 y, uint16 z)
 {
-	if ((chunkData+(CHUNKSIZE* CHUNKSIZE *x+ CHUNKSIZE *y+z))->solid & 0b1) //Ptr + theIndex we are looking for
-	{
-		//Block is solid - remove from geom
-		chunkSolid[x * CHUNKSIZE + y] = chunkSolid[x * CHUNKSIZE + y] & ~(0b1 << z); //E.g Z=3 -> 11110111
-
-		
-		
-	}
-	else
-	{
-		; //Remove model etc
-	}
+	
 
 	(chunkData + (CHUNKSIZE * CHUNKSIZE * x + CHUNKSIZE * y + z))->id = 0b0;
 	(chunkData + (CHUNKSIZE * CHUNKSIZE * x + CHUNKSIZE * y + z))->solid = 0b0;
 	//Mark Geom Updated
 	geomUpdated = true;
 }
+
+void chunk::setBlock(uint32 x, uint32 y, uint32 z, uint32 id)
+{
+	block& blockRef = getBlock(x, y, z);
+	blockRef.id = id;
+	blockRef.solid = blockLibrary.BlockDefaultSolid[blockLibrary[id]] ? 0b1 : 0b0; //Check if the block defaults to solid
+	geomUpdated = true;
+}
+
+block& chunk::getBlock(uint32 x, uint32 y, uint32 z)
+{
+	block EmptyBlock = { 0,0 };
+	if (x < 0 or y < 0 or z < 0 or x>15 or y>15 or z>15) return EmptyBlock;
+	return *(chunkData + z + (y * CHUNKSIZE) + (x * CHUNKSIZE * CHUNKSIZE));
+}
+
 
 void chunk::createFullChunk()
 {
@@ -58,7 +63,7 @@ void chunk::createFullChunk()
 				(chunkData + (CHUNKSIZE * CHUNKSIZE * i + CHUNKSIZE * j + k))->id = 1;
 				(chunkData + (CHUNKSIZE * CHUNKSIZE * i + CHUNKSIZE * j + k))->solid = 0b1;
 
-				chunkSolid[i * CHUNKSIZE + j] = chunkSolid[i * CHUNKSIZE + j] | (0b1 << k); //Shift left k bits so that we set it to solid
+				
 			}
 		}
 	}
@@ -104,7 +109,7 @@ void chunk::updateGeom()
 
 					if (std::find(knownTextures.begin(), knownTextures.end(), getBlock(x, y, z).id) == knownTextures.end()) //If we haven't yet found this ID then add it
 					{
-						if (getBlock(x, y, z).solid == false) continue; //No Texture support for unsolid blocks
+						if (getBlock(x, y, z).solid == false) goto checkSolid; //No Texture support for unsolid blocks //Use a goto here since we need to check this but can't skip this array
 						knownTextures.push_back(getBlock(x, y, z).id);
 						std::string blockName = blockLibrary.idBlockLookup[getBlock(x, y, z).id]; // Get the blockname
 
@@ -122,7 +127,7 @@ void chunk::updateGeom()
 
 
 
-
+				checkSolid:
 				//If block is solid
 				if (getBlock(x-1,y-1,z-1).solid) //If returned block is solid
 				{
@@ -548,19 +553,9 @@ std::vector<greedyQuad> chunk::greedyMeshBinaryPlane(std::vector<uint16>& inDat)
 	return quads;
 }
 
-block& chunk::getBlock(uint32 x, uint32 y, uint32 z)
-{
-	block EmptyBlock = { 0,0 };
-	if (x < 0 or y < 0 or z < 0 or x>15 or y>15 or z>15) return EmptyBlock;
-	return *(chunkData+z+(y*CHUNKSIZE)+(x*CHUNKSIZE*CHUNKSIZE));
-}
 
-void chunk::setBlock(uint32 x, uint32 y, uint32 z, uint32 id)
-{
-	getBlock(x, y, z).id = id;
-	getBlock(x, y, z).solid = blockLibrary.BlockDefaultSolid[blockLibrary[id]] ? 0b1 : 0b0; //Check if the block defaults to solid
-	geomUpdated = true;
-}
+
+
 
 int chunk::trailingZeros(const uint16& intRef)
 {

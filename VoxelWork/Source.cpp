@@ -195,7 +195,19 @@ void Update()
 	std::stringstream title;
 	float titleUpdateTime=0.f;
 
-
+	for (int x = 0; x < 4; x++)
+	{
+		for (int y = 0; y < 4; y++)
+		{
+			for (int z = 0; z < 4; z++)
+			{
+				if (x*x*x + y*y*y + z*z*z < 32)
+				{
+					testChunk->deleteBlock(x, y, z);
+				}
+			}
+		}
+	}
 	
 	testChunk->deleteBlock(3, 0, 0);
 	testChunk->deleteBlock(3, 0, 1);
