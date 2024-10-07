@@ -29,14 +29,21 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 
 void processInput(GLFWwindow* window);
+void Update();
 void Tick();
+void Render();
+void Events();
 unsigned int& genTestTriangle();
 
 glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 100.0f);
 camera* currentCamera;
 glm::mat4 view = glm::mat4(1.0f);
 
+
+node* currentScene;
+
 chunk* testChunk;
+
 
 int main()
 {
@@ -78,14 +85,21 @@ int main()
 	
 
 
-	
+	//Create a new scene
+	currentScene = new node();
 
 	// Create a new camera
 	currentCamera = new camera();
 	// --Loop--
-	Tick();
+	Update();
 	
 	// --Shutdown--
+
+	//Definite Deletes
+	delete currentCamera;
+	delete currentScene;
+	//Temporary Deletes
+
 
 	glfwTerminate();
 	return 0;
@@ -149,7 +163,7 @@ void processInput(GLFWwindow* window)
 		}
 		else
 		{
-			testChunk->setBlock(0, 0, 0, 1);
+			testChunk->setBlock(0, 0, 0, 3);
 			blockPlaced = true;
 		}
 		keyPressed = true;
@@ -161,7 +175,7 @@ void processInput(GLFWwindow* window)
 }
 
 
-void Tick()
+void Update()
 {
 	
 
@@ -187,11 +201,17 @@ void Tick()
 	testChunk->deleteBlock(3, 0, 1);
 	testChunk->deleteBlock(0, 0, 3);
 	testChunk->deleteBlock(1, 0, 3);
+	testChunk->deleteBlock(0, 1, 0);
 	testChunk->setBlock(2, 0, 0, 2);
 	testChunk->setBlock(0, 0, 0, 2);
 	testChunk->setBlock(1, 0, 3, 2);
 	
 
+	// ---Add objects to scene---
+	currentScene->addChild(*currentCamera);
+
+	//Add test chunk as a child
+	currentScene->addChild(*testChunk);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -199,6 +219,7 @@ void Tick()
 		//UPDATE
 		//DRAW
 		deltaTime = glfwGetTime() - lastFrame;
+		dt = deltaTime;
 		lastFrame = glfwGetTime();
 		titleUpdateTime += deltaTime;
 		//Update Window Title
@@ -211,24 +232,20 @@ void Tick()
 		}
 		
 		
-		//Process Input
-		processInput(window);
-
-
-		// Update to the view of the current camera
-		view = currentCamera->cameraView;
-		currentCamera->tick();
-
-
-		//Update Scene
-		/*testChunk->deleteBlock(0, 0, 1);
-		testChunk->deleteBlock(0, 1, 1);
-		testChunk->deleteBlock(0, 1, 2);
-		testChunk->deleteBlock(1, 1, 2);*/
+		//Process Input and Events
+		Events();
 		
 
 
-		testChunk->tick();
+		
+		//Tick
+		Tick();
+
+		
+		
+
+
+		
 		
 		
 		//Render here
@@ -237,14 +254,14 @@ void Tick()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
+		Render();
 
 
-
-		testChunk->render(*currentCamera);
+		
 
 		//Call Events and Swap Buffers
 		glfwSwapBuffers(window);
-		glfwPollEvents();
+		
 	}
 }
 
@@ -310,3 +327,22 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 	currentCamera->RotateView(xOffset, yOffset);
 }
+
+void Events()
+{
+	glfwPollEvents();
+	processInput(window);
+}
+
+void Tick()
+{
+	//Update the current scene
+	currentScene->tick();
+
+}
+
+void Render()
+{
+	currentScene->render(*currentCamera);
+}
+

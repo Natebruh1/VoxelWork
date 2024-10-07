@@ -5,8 +5,25 @@ node::node()
 {
 }
 
+node::~node()
+{
+	for (auto& child : children)
+	{
+		delete child;
+	}
+	if (parent) parent->removeChild(*this);
+}
+
 void node::tick()
 {
+	for (auto& child : children)
+	{
+		if (child->visible) //Only render visible children
+		{
+			child->tick();
+		}
+
+	}
 }
 
 void node::render(camera& currentCamera)

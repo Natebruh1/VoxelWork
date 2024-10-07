@@ -9,6 +9,7 @@ class node
 {
 public:
 	node();
+	virtual ~node();
 	virtual void tick();
 	virtual void render(camera& currentCamera);
 	virtual node& addChild(node& newChild);

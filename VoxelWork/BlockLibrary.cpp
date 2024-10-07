@@ -13,6 +13,7 @@ BlockLibrary::BlockLibrary()
 	BlockLibrary::idBlockLookup[0] = "Air";
 	BlockLibrary::idBlockLookup[1] = "Stone";
 	BlockLibrary::idBlockLookup[2] = "Dirt";
+	BlockLibrary::idBlockLookup[3] = "Grass";
 
 
 
@@ -41,12 +42,20 @@ BlockLibrary::BlockLibrary()
 	BlockTextures["Dirt"].push_back("textures/dirt.png");
 	BlockTextures["Dirt"].push_back("textures/dirt.png");
 
+	//Grass
+	BlockTextures["Grass"].push_back("textures/grassSide.png");
+	BlockTextures["Grass"].push_back("textures/grassSide.png");
+	BlockTextures["Grass"].push_back("textures/grassSide.png");
+	BlockTextures["Grass"].push_back("textures/grassSide.png");
+	BlockTextures["Grass"].push_back("textures/dirt.png");
+	BlockTextures["Grass"].push_back("textures/grassTop.png");
+
 
 	// Default Solid
 	BlockDefaultSolid["Air"]=false;
 	BlockDefaultSolid["Stone"] = true;
 	BlockDefaultSolid["Dirt"] = true;
-
+	BlockDefaultSolid["Grass"] = true;
 
 
 }
