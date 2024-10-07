@@ -3,8 +3,7 @@
 #include "node3D.h"
 #include "ResourceManager.h"
 #include "SparseBindlessTextureArray.h"
-#include "globals.h"
-#include "camera.h"
+
 #include <stdint.h>
 
 #include <bit>
@@ -96,7 +95,7 @@ public:
 
     //Block Editors
     block& getBlock(uint32 x, uint32 y, uint32 z);
-    void setBlock(uint32 x, uint32 y, uint32 z, uint16 id);
+    void setBlock(uint32 x, uint32 y, uint32 z, uint32 id);
 
     //Utility
     int trailingZeros(const uint16& intRef);
@@ -106,7 +105,7 @@ public:
 
     // Node
     virtual void tick() override;
-    void render(camera& currentCamera);
+    virtual void render(camera& currentCamera) override;
 
     // Con/Decon
     ~chunk();
@@ -131,11 +130,13 @@ private:
     std::vector<vertexData> vertices;
 
     unsigned int chunkVAO;
-
+    unsigned int VBO;
 
     //Texturing
     std::vector<uint32> textureIndices;
     static std::vector<uint16>knownTextures; //std::vector of BlockID's, the idea is to reduce redundancy
     static SparseBindlessTextureArray ChunkTextures; //Save's memory
+
+
 };
 

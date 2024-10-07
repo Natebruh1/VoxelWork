@@ -63,11 +63,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="tri.vs">
-      <Filter>Shaders\Vertex</Filter>
-    </None>
     <None Include="tri.ps">
       <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="tri.vs">
+      <Filter>Shaders\Vertex</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

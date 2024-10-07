@@ -3,11 +3,21 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <GLFW/glfw3.h>
-
+#include "globals.h"
+class camera;
 class node
 {
 public:
 	node();
 	virtual void tick();
+	virtual void render(camera& currentCamera);
+	virtual node& addChild(node& newChild);
+	virtual node& removeChild(node& childToRemove);
+protected:
+	bool visible = true;
+	std::vector<node*> children;
+	node* parent;
+
+	
 };
 

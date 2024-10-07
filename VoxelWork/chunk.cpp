@@ -1,5 +1,5 @@
 #include "chunk.h"
-
+#include "camera.h";
 
 //Instantiate Static Variables
 std::vector<uint16>			chunk::knownTextures;
@@ -26,16 +26,18 @@ void chunk::deleteBlock(uint16 x, uint16 y, uint16 z)
 		//Block is solid - remove from geom
 		chunkSolid[x * CHUNKSIZE + y] = chunkSolid[x * CHUNKSIZE + y] & ~(0b1 << z); //E.g Z=3 -> 11110111
 
-		//Mark Geom Updated
-		geomUpdated = true;
+		
+		
 	}
 	else
 	{
 		; //Remove model etc
 	}
 
-	(chunkData + (CHUNKSIZE * CHUNKSIZE * x + CHUNKSIZE * y + z))->id = 0;
-	(chunkData + (CHUNKSIZE * CHUNKSIZE * x + CHUNKSIZE * y + z))->solid = 0;
+	(chunkData + (CHUNKSIZE * CHUNKSIZE * x + CHUNKSIZE * y + z))->id = 0b0;
+	(chunkData + (CHUNKSIZE * CHUNKSIZE * x + CHUNKSIZE * y + z))->solid = 0b0;
+	//Mark Geom Updated
+	geomUpdated = true;
 }
 
 void chunk::createFullChunk()
@@ -66,6 +68,11 @@ void chunk::createFullChunk()
 
 void chunk::updateGeom()
 {
+	//Clear Axis Cols
+	//We use C-Style code here to efficiently clear the data
+	memset(axis_col, 0, sizeof(axis_col));
+
+
 	if (ChunkTextures.isGenerated == false)
 	{
 		
@@ -75,7 +82,7 @@ void chunk::updateGeom()
 
 	//Clear blockID's so we can recreate textures later
 
-	knownTextures.clear();
+	//knownTextures.clear();
 	//knownTextures.push_back(0); //Add air
 	//ChunkTextures.addImage(blockLibrary.BlockTextures["Air"][0]); //Add one texture per axis
 	//ChunkTextures.addImage(blockLibrary.BlockTextures["Air"][1]);
@@ -129,11 +136,15 @@ void chunk::updateGeom()
 					// Z axis
 					axis_col[x + (z * 18) + chunk_size_p2*2].data |= (0b1 << y);
 				}
+				
 			}
 		}
 	}
 
-
+	//Clear Mask Col
+	
+	
+	
 	//Face culling
 	for (int axis = 0; axis < 3; axis++) //X then Y then Z
 	{
@@ -148,8 +159,8 @@ void chunk::updateGeom()
 		}
 	}
 
-	geomUpdated = false;
 	
+	data.clear();
 	//Binary Greedy Meshing
 	for (int axis = 0; axis < 6; axis++)
 	{
@@ -193,7 +204,7 @@ void chunk::updateGeom()
 					//Transform to axis based positions and then transform to chunk based positions
 					
 					auto& data_block = data[axis][x];
-
+					
 					data_block.resize(16, 0);
 					data_block[z] |= (0b1 <<y);
 					
@@ -410,7 +421,7 @@ void chunk::updateGeom()
 	}
 	prepareRender();
 
-
+	geomUpdated = false;
 }
 
 
@@ -427,7 +438,7 @@ std::vector<greedyQuad> chunk::greedyMeshBinaryPlane(std::map<int,std::vector<ui
 			{
 				if (auto search = inDat.find(plane); search == inDat.end()) break; //If inDat doesn't have this plane then we can skip this section
 				y += trailingZeros(inDat[plane][row] >> y);
-				//5:48
+				
 
 				if (y >= 16)
 				{
@@ -544,10 +555,11 @@ block& chunk::getBlock(uint32 x, uint32 y, uint32 z)
 	return *(chunkData+z+(y*CHUNKSIZE)+(x*CHUNKSIZE*CHUNKSIZE));
 }
 
-void chunk::setBlock(uint32 x, uint32 y, uint32 z, uint16 id)
+void chunk::setBlock(uint32 x, uint32 y, uint32 z, uint32 id)
 {
 	getBlock(x, y, z).id = id;
-	
+	getBlock(x, y, z).solid = blockLibrary.BlockDefaultSolid[blockLibrary[id]] ? 0b1 : 0b0; //Check if the block defaults to solid
+	geomUpdated = true;
 }
 
 int chunk::trailingZeros(const uint16& intRef)
@@ -572,6 +584,7 @@ std::optional<uint16> chunk::checkedShl(uint16 value, int shift)
 
 void chunk::tick()
 {
+	node::tick();
 	if(geomUpdated)
 	{
 		//Update Geometry
@@ -583,6 +596,8 @@ void chunk::tick()
 
 void chunk::render(camera& currentCamera)
 {
+	node::render(currentCamera);
+
 	ResourceManager::GetShader("triangle")->Use(); //Select and use (via glUseProgram) the correct shader.
 
 	
@@ -612,9 +627,13 @@ void chunk::render(camera& currentCamera)
 
 unsigned int chunk::prepareRender()
 {
-	unsigned int VBO;
-	glGenVertexArrays(1, &chunkVAO); //Generate buffers and arrays
-	glGenBuffers(1, &VBO);
+	
+	if (VBO == 0 || chunkVAO == 0)
+	{
+		glGenVertexArrays(1, &chunkVAO); //Generate buffers and arrays
+		glGenBuffers(1, &VBO);
+	}
+	
 
 	//Bind OpenGL to VAO object
 	glBindVertexArray(chunkVAO);
@@ -658,7 +677,7 @@ unsigned int chunk::prepareRender()
 			{
 				if (getBlock(x, y, z).solid == false)
 				{
-					textureIndices.push_back(uint32(-1)); //For now just push back texture 0, eventually will use lookup to map position to blocks
+					textureIndices.push_back(uint32(-1)); //For now just push back texture -1 to clear pixels
 					textureIndices.push_back(uint32(-1));
 					textureIndices.push_back(uint32(-1));
 					textureIndices.push_back(uint32(-1));

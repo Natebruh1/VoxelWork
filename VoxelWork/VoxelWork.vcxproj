@@ -149,8 +149,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="tri.ps" />
-    <None Include="tri.vs" />
+    <None Include="tri.ps">
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+    <None Include="tri.vs">
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="block.h" />

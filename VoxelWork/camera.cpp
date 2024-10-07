@@ -20,6 +20,7 @@ camera::camera()
 
 void camera::tick()
 {
+	node::tick();
 	cameraView = glm::lookAt(position, position + cameraFront, cameraUp);
 
 

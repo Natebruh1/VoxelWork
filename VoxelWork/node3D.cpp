@@ -2,4 +2,5 @@
 
 void node3D::tick()
 {
+	node::tick();
 }

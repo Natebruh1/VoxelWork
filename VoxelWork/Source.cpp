@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "ResourceManager.h"
-#include "camera.h"
+#include "camera.h";
 
 #include "chunk.h"
 #include "globals.h"
@@ -35,6 +35,8 @@ unsigned int& genTestTriangle();
 glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 100.0f);
 camera* currentCamera;
 glm::mat4 view = glm::mat4(1.0f);
+
+chunk* testChunk;
 
 int main()
 {
@@ -124,6 +126,9 @@ void framebuffer_size_callback(GLFWwindow* wd, int width, int height)
 float deltaTime = 0.0f;	// Time between current frame and last frame, used for maintaining rates between frames
 float lastFrame = 0.f; // Time of last frame
 
+
+bool blockPlaced = true;
+bool keyPressed = false;
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -132,6 +137,27 @@ void processInput(GLFWwindow* window)
 	//--TEMP--
 	// Camera Input
 	currentCamera->processInput(window,deltaTime);
+
+
+	if (!keyPressed && glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) // Temp to demonstrate updateGeom and chunkUpdates
+	{
+
+		if (blockPlaced)
+		{
+			testChunk->deleteBlock(0, 0, 0);
+			blockPlaced = false;
+		}
+		else
+		{
+			testChunk->setBlock(0, 0, 0, 1);
+			blockPlaced = true;
+		}
+		keyPressed = true;
+	}
+	if (keyPressed && glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
+	{
+		keyPressed = false;
+	}
 }
 
 
@@ -146,7 +172,7 @@ void Tick()
 
 	//Set the shader uniforms for view and projection
 	float totalCount = 0.f;
-	chunk* testChunk;
+	
 	bool chunkMade = false;
 	testChunk = new chunk();
 	testChunk->createFullChunk();
@@ -154,6 +180,18 @@ void Tick()
 	//Window Title Stringstream (Credit : https://stackoverflow.com/questions/18412120/displaying-fps-in-glfw-window-title)
 	std::stringstream title;
 	float titleUpdateTime=0.f;
+
+
+	
+	testChunk->deleteBlock(3, 0, 0);
+	testChunk->deleteBlock(3, 0, 1);
+	testChunk->deleteBlock(0, 0, 3);
+	testChunk->deleteBlock(1, 0, 3);
+	testChunk->setBlock(2, 0, 0, 2);
+	testChunk->setBlock(0, 0, 0, 2);
+	testChunk->setBlock(1, 0, 3, 2);
+	
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -187,12 +225,9 @@ void Tick()
 		testChunk->deleteBlock(0, 1, 1);
 		testChunk->deleteBlock(0, 1, 2);
 		testChunk->deleteBlock(1, 1, 2);*/
-		testChunk->deleteBlock(3, 0, 0);
-		testChunk->deleteBlock(3, 0, 1);
-		testChunk->deleteBlock(0, 0, 3);
-		testChunk->deleteBlock(1, 0, 3);
-		testChunk->setBlock(2, 0, 0, 2);
 		
+
+
 		testChunk->tick();
 		
 		
