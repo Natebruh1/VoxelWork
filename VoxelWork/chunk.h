@@ -18,6 +18,7 @@
 #include "json.hpp"
 #include <fstream>
 
+class ChunkSpace;
 using uint16 = uint16_t;
 using uint32 = uint32_t;
 struct chunk_padded {
@@ -93,15 +94,16 @@ public:
     // Chunk
     void deleteBlock(uint16 x, uint16 y, uint16 z);
     void createFullChunk();
-    void updateGeom();
+    void updateGeom(bool withNeighbour = true);
+    void alertNeighbourToUpdate(); //Alert neighbouring chunks to update their geometry, primarily used if a chunk is created in a chunkSpace
     unsigned int prepareRender();
     std::vector<greedyQuad> greedyMeshBinaryPlane(std::map<int, std::vector<uint16>>& inDat);
     std::vector<greedyQuad> greedyMeshBinaryPlane(std::vector<uint16>& inDat);
 
     //Block Editors
-    block& getBlock(uint32 x, uint32 y, uint32 z);
+    block& getBlock(int x, int y, int z);
     void setBlock(uint32 x, uint32 y, uint32 z, uint32 id);
-
+    void neighbourUpdate() {neighbourUpdated = true;};
     //Utility
     int trailingZeros(const uint16& intRef);
     int trailingOnes(const uint16& intRef);
@@ -118,15 +120,26 @@ public:
     ~chunk();
     chunk();
 
+    //chunkCoord setter
+    void setChunkCoords(int x, int y, int z) { chunkCoords = glm::ivec3(x, y, z); }
+    glm::ivec3& getChunkCoords() { return chunkCoords; }
     
     
-    
+    //Quads
     std::vector<greedyQuad> chunkQuads;
+
+
+    //Equals Operator
+    chunk& operator=(chunk& rhs)
+    {
+        return rhs;
+    }
 private: 
     bool geomUpdated = false; //If true then during the next tick we recreate chunk geometry
+    bool neighbourUpdated = false;
     // Data
     block* chunkData; //Defines the chunk as created by blocks. Includes extraneous data.
-    
+    block EmptyBlock = { 0,0 }; //To Return if we can't find a block
 
     chunk_p axis_col[3*chunk_size_p2]; //We want to split the chunk into 3 separate chunks with data formatted for each axis
     chunk_p mask_col[3 * chunk_size_p2 * 2]; //The same as above except we want one mask for each face rather than each axis
@@ -138,12 +151,13 @@ private:
 
     unsigned int chunkVAO;
     unsigned int VBO;
-
+    unsigned int texIndexSSBO;
     //Texturing
-    std::vector<uint32> textureIndices;
-    static std::vector<uint16>knownTextures; //std::vector of BlockID's, the idea is to reduce redundancy
-    static SparseBindlessTextureArray ChunkTextures; //Save's memory
+    std::vector<uint32> textureIndices;                 //Contains and index per block that maps to a texture
+    static std::vector<uint16>knownTextures;            //std::vector of BlockID's, the idea is to reduce redundancy
+    static SparseBindlessTextureArray ChunkTextures;    //These are both static to save memory
 
-
+    //Chunk Coords
+    glm::ivec3 chunkCoords = glm::ivec3(0, 0, 0);
 };
 

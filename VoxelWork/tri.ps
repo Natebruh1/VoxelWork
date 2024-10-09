@@ -38,45 +38,43 @@ void main()
     
     
     int texIndex=((xCoord*256+yCoord*16+zCoord)*6 + ax);
-    if (textureIndices[texIndex]==0)
+    if (textureIndices[texIndex] ==-1)
     {
-        //discard;
+        discard;
     }
     FragColor = texture(textureArray,vec3(vec2(texCoord),textureIndices[texIndex]));
 
 
-    if (textureIndices[texIndex] ==-1) {
-        discard;
-    }
+    
 
 
 
     //FragColor = texture(textureArray,vec3(vec2(texCoord),float(textureIndices[texIndex])));
     
     //Nan or inf color vals
-    if (isnan(FragColor.x) || isinf(FragColor.x) || isnan(FragColor.y) || isinf(FragColor.y) || isnan(FragColor.z) || isinf(FragColor.z) || isnan(FragColor.w) || isinf(FragColor.w))
-    {
-        FragColor=vec4(219.0/255.0,10.0/255.0,91.0/255.0,1.0);
-    }
+    //if (isnan(FragColor.x) || isinf(FragColor.x) || isnan(FragColor.y) || isinf(FragColor.y) || isnan(FragColor.z) || isinf(FragColor.z) || isnan(FragColor.w) || isinf(FragColor.w))
+    //{
+    //    FragColor=vec4(219.0/255.0,10.0/255.0,91.0/255.0,1.0);
+    //}
 
     //TexCoord<0 or >1
-    if (texCoord.x<0.0 || texCoord.y<0.0 || texCoord.x>1.0 || texCoord.y>1.0)
-    {
-        FragColor=vec4(219.0/255.0,10.0/255.0,91.0/255.0,1.0);
-    }
+    //if (texCoord.x<0.0 || texCoord.y<0.0 || texCoord.x>1.0 || texCoord.y>1.0)
+    //{
+    //    FragColor=vec4(219.0/255.0,10.0/255.0,91.0/255.0,1.0);
+    //}
 
     //Tex coord inf/ nan
-    if (isnan(texCoord.x) || isnan(texCoord.y) || isinf(texCoord.x) || isinf(texCoord.y))
-    {
-        FragColor=vec4(219.0/255.0,10.0/255.0,91.0/255.0,1.0);
-    }
+    //if (isnan(texCoord.x) || isnan(texCoord.y) || isinf(texCoord.x) || isinf(texCoord.y))
+    //{
+    //    FragColor=vec4(219.0/255.0,10.0/255.0,91.0/255.0,1.0);
+    //}
 
 
 
-    if (textureHandle==0) //Debug to check if Bindless handle is zero
-    {
-        FragColor = vec4(0.8, 0.05, 0.0, 1.0); // Debug: if handle is invalid
-    }
+    //if (textureHandle==0) //Debug to check if Bindless handle is zero
+    //{
+    //    FragColor = vec4(0.8, 0.05, 0.0, 1.0); // Debug: if handle is invalid
+    //}
     //FragColor=vec4(vec3(0.8f*zDepth, 0.5f*zDepth, 0.2f*zDepth),1.0);
     
     //FragColor = vec4(xCoord,yCoord,zCoord,1.0);

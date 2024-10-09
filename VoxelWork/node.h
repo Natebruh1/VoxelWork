@@ -3,7 +3,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <GLFW/glfw3.h>
+
 #include "globals.h"
+
+//Temp
+#include<iostream>
 class camera;
 class node
 {
@@ -17,7 +21,7 @@ public:
 protected:
 	bool visible = true;
 	std::vector<node*> children;
-	node* parent;
+	node* parent=nullptr;
 
 	
 };

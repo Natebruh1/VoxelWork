@@ -11,7 +11,10 @@ node::~node()
 	{
 		delete child;
 	}
-	if (parent) parent->removeChild(*this);
+	if (parent != nullptr)
+	{
+		parent->removeChild(*this);
+	}
 }
 
 void node::tick()
@@ -33,6 +36,7 @@ void node::render(camera& currentCamera)
 		if (child->visible) //Only render visible children
 		{
 			child->render(currentCamera);
+			
 		}
 		
 	}
@@ -43,7 +47,13 @@ node& node::addChild(node& newChild)
 	if (auto search = std::find(children.begin(), children.end(), &newChild); search == children.end()) //If we can't find the child in our tree.
 	{
 		children.push_back(&newChild);
+		//Remove our newChild from its old parent
+		if (newChild.parent != nullptr)
+		{
+			newChild.parent->removeChild(newChild);
+		}
 		newChild.parent = this;
+		
 	}
 	return newChild;
 }

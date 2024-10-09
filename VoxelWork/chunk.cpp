@@ -1,5 +1,6 @@
 #include "chunk.h"
 #include "camera.h";
+#include "ChunkSpace.h"
 
 //Instantiate Static Variables
 std::vector<uint16>			chunk::knownTextures;
@@ -8,7 +9,10 @@ SparseBindlessTextureArray	chunk::ChunkTextures;
 chunk::chunk()
 {
 	chunkData = new block[16 * 16 * 16];
-	
+
+	glGenVertexArrays(1, &chunkVAO); //Generate buffers and arrays
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &texIndexSSBO);
 }
 
 void chunk::serialize(nlohmann::json& data)
@@ -43,8 +47,15 @@ void chunk::serialize(nlohmann::json& data)
 
 chunk::~chunk()
 {
-	
 	delete[] chunkData;
+	//Delete Buffers
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &texIndexSSBO);
+	
+	glDeleteVertexArrays(1, &chunkVAO);
+	
+	
 }
 
 
@@ -67,10 +78,41 @@ void chunk::setBlock(uint32 x, uint32 y, uint32 z, uint32 id)
 	geomUpdated = true;
 }
 
-block& chunk::getBlock(uint32 x, uint32 y, uint32 z)
+block& chunk::getBlock(int x, int y, int z)
 {
-	block EmptyBlock = { 0,0 };
-	if (x < 0 or y < 0 or z < 0 or x>15 or y>15 or z>15) return EmptyBlock;
+	
+	if (x < 0 or y < 0 or z < 0 or x>15 or y>15 or z>15)
+	{
+		
+		int targetX = 0;	//Target chunk coords
+		int targetY= 0;
+		int targetZ = 0;
+
+		int blockX = x; //Target block in adjacent chunk
+		int blockY = y;
+		int blockZ = z;
+		if (x < 0) { targetX = -1; blockX = 15; }		//X
+		else if (x > 15) { targetX = 1; blockX = 0; }
+		
+
+		if (y < 0) { targetY = -1; blockY = 15; }		//Y
+		else if (y > 15) { targetY = 1; blockY = 0; }
+		
+
+		if (z < 0) { targetZ = -1; blockZ = 15; }		//Z
+		else if (z > 15) { targetZ = 1; blockZ = 0; }
+		
+
+		if (chunk* trgChunk = static_cast<ChunkSpace*>(parent)->getChunk(chunkCoords.x + targetX, chunkCoords.y + targetY, chunkCoords.z + targetZ); trgChunk == nullptr)
+		{
+			return EmptyBlock;
+		}
+		else
+		{
+			return trgChunk->getBlock(blockX, blockY, blockZ);
+		}
+		
+	}
 	return *(chunkData + z + (y * CHUNKSIZE) + (x * CHUNKSIZE * CHUNKSIZE));
 }
 
@@ -101,8 +143,11 @@ void chunk::createFullChunk()
 	geomUpdated = true;
 }
 
-void chunk::updateGeom()
+void chunk::updateGeom(bool withNeighbour)
 {
+	
+
+
 	//Clear Axis Cols
 	//We use C-Style code here to efficiently clear the data
 	memset(axis_col, 0, sizeof(axis_col));
@@ -457,6 +502,30 @@ void chunk::updateGeom()
 	prepareRender();
 
 	geomUpdated = false;
+	
+	if (withNeighbour) //If we're not updating because a neighbour told us to
+	{
+		//Mark neighbouring chunks for updates
+		ChunkSpace* chunkParent = static_cast<ChunkSpace*>(parent);
+		if (auto ch = chunkParent->getChunk(chunkCoords.x - 1, chunkCoords.y, chunkCoords.z); ch) { ch->neighbourUpdate(); } //x-1
+		if (auto ch = chunkParent->getChunk(chunkCoords.x + 1, chunkCoords.y, chunkCoords.z); ch) { ch->neighbourUpdate(); } //x+1
+		if (auto ch = chunkParent->getChunk(chunkCoords.x, chunkCoords.y - 1, chunkCoords.z); ch) { ch->neighbourUpdate(); } //y-1
+		if (auto ch = chunkParent->getChunk(chunkCoords.x, chunkCoords.y + 1, chunkCoords.z); ch) { ch->neighbourUpdate(); } //y+1
+		if (auto ch = chunkParent->getChunk(chunkCoords.x, chunkCoords.y, chunkCoords.z - 1); ch) { ch->neighbourUpdate(); } //z-1
+		if (auto ch = chunkParent->getChunk(chunkCoords.x, chunkCoords.y, chunkCoords.z + 1); ch) { ch->neighbourUpdate(); } //z+1
+	}
+	neighbourUpdated = false; //Now we can mark our neighbours to update
+}
+
+void chunk::alertNeighbourToUpdate()
+{
+	ChunkSpace* chunkParent = static_cast<ChunkSpace*>(parent);
+	if (auto ch = chunkParent->getChunk(chunkCoords.x - 1, chunkCoords.y, chunkCoords.z); ch) { ch->neighbourUpdate(); } //x-1
+	if (auto ch = chunkParent->getChunk(chunkCoords.x + 1, chunkCoords.y, chunkCoords.z); ch) { ch->neighbourUpdate(); } //x+1
+	if (auto ch = chunkParent->getChunk(chunkCoords.x, chunkCoords.y - 1, chunkCoords.z); ch) { ch->neighbourUpdate(); } //y-1
+	if (auto ch = chunkParent->getChunk(chunkCoords.x, chunkCoords.y + 1, chunkCoords.z); ch) { ch->neighbourUpdate(); } //y+1
+	if (auto ch = chunkParent->getChunk(chunkCoords.x, chunkCoords.y, chunkCoords.z - 1); ch) { ch->neighbourUpdate(); } //z-1
+	if (auto ch = chunkParent->getChunk(chunkCoords.x, chunkCoords.y, chunkCoords.z + 1); ch) { ch->neighbourUpdate(); } //z+1
 }
 
 
@@ -615,8 +684,15 @@ void chunk::tick()
 		//Update Geometry
 
 		updateGeom();
-		geomUpdated = false;
+		neighbourUpdated = false; //If we've been marked already by a neighbour to update then we no longer need to
 	}
+	if (neighbourUpdated)
+	{
+		updateGeom(false); //Update this chunk but we no longer want to update neghbouring chunks
+		neighbourUpdated = false;
+	}
+	transform = static_cast<ChunkSpace*>(parent)->transform;
+	transform = glm::translate(transform, glm::vec3((float)chunkCoords.x * 16.f, (float)chunkCoords.y * 16.f, (float)chunkCoords.z * 16.f));
 }
 
 void chunk::render(camera& currentCamera)
@@ -646,18 +722,23 @@ void chunk::render(camera& currentCamera)
 	(*ResourceManager::GetShader("triangle")).SetBindlessTextureHandle("textureHandle", ChunkTextures.getBindlessHandle());
 	
 
+	//Bind Buffers and draw call
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, texIndexSSBO);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindVertexArray(chunkVAO); //Now bind openGL to the correct vertex array
-	glDrawArrays(GL_TRIANGLES, 0, vertices.size()+1); // Draw a triangle (starting at index 0 and increasing to 6 verts)
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size()); // Draw a triangle (starting at index 0 and increasing to 6 verts)
+	if (auto err = glGetError(); err != GL_NO_ERROR) std::cerr << "OpenGL error: " << std::hex << err << std::endl; //Clean error detection line (limited info given however)
+	glBindVertexArray(0); //Unbind
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 unsigned int chunk::prepareRender()
 {
 	
-	if (VBO == 0 || chunkVAO == 0)
-	{
-		glGenVertexArrays(1, &chunkVAO); //Generate buffers and arrays
-		glGenBuffers(1, &VBO);
-	}
+	
 	
 
 	//Bind OpenGL to VAO object
@@ -681,8 +762,8 @@ unsigned int chunk::prepareRender()
 	
 	;
 
-	GLuint texIndexSSBO;
-	glGenBuffers(1, &texIndexSSBO);
+	
+	
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, texIndexSSBO);
 
 	//Find Exact amount of voxel textures we need to store in SSBO
@@ -723,7 +804,7 @@ unsigned int chunk::prepareRender()
 		}
 	}
 
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, textureIndices.size() * sizeof(uint32), textureIndices.data());
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, textureIndices.size() * sizeof(uint32), &textureIndices[0]);
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
 	//Unbind buffer
@@ -738,6 +819,10 @@ unsigned int chunk::prepareRender()
 
 	//Unbind Vertex Array Object so we don't end up (accidentally modifying it)
 	glBindVertexArray(0);
+
+	
+	
+
 
 	return chunkVAO;
 }

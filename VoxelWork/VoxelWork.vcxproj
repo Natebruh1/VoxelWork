@@ -138,6 +138,7 @@
     <ClCompile Include="BlockLibrary.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="chunk.cpp" />
+    <ClCompile Include="ChunkSpace.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="node.cpp" />
     <ClCompile Include="node3D.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="BlockLibrary.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="chunk.h" />
+    <ClInclude Include="ChunkSpace.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="node.h" />

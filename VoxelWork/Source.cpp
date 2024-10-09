@@ -7,6 +7,7 @@
 #include "ResourceManager.h"
 #include "camera.h";
 
+#include "ChunkSpace.h"
 #include "chunk.h"
 #include "globals.h"
 
@@ -43,7 +44,7 @@ glm::mat4 view = glm::mat4(1.0f);
 node* currentScene;
 
 chunk* testChunk;
-
+ChunkSpace* cSpace;
 
 int main()
 {
@@ -83,7 +84,8 @@ int main()
 	// Load Shaders into memory
 	ResourceManager::LoadShader("tri.vs", "tri.ps", nullptr, "triangle");
 	
-
+	//Add a new chunkSpace
+	cSpace = new ChunkSpace();
 
 	//Create a new scene
 	currentScene = new node();
@@ -98,15 +100,16 @@ int main()
 	//Save remaining chunks
 	nlohmann::json data;
 	testChunk->serialize(data);
-
-
+	
+	
 	//Definite Deletes
 	delete currentCamera;
 	delete currentScene;
 	//Temporary Deletes
-
+	
 	
 	glfwTerminate();
+	
 	return 0;
 }
 
@@ -228,8 +231,12 @@ void Update()
 	currentScene->addChild(*currentCamera);
 
 	//Add test chunk as a child
-	currentScene->addChild(*testChunk);
-
+	currentScene->addChild(*cSpace);
+	cSpace->addChunk(0,0,0,*testChunk);
+	chunk* testChunk2 = cSpace->addChunk(1, 0, 0);
+	testChunk2->createFullChunk();
+	//testChunk2->createFullChunk();
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		//PROCESS
@@ -257,7 +264,7 @@ void Update()
 		
 		//Tick
 		Tick();
-
+		
 		
 		
 
@@ -272,12 +279,13 @@ void Update()
 
 
 		Render();
-
+		
 
 		
 
 		//Call Events and Swap Buffers
 		glfwSwapBuffers(window);
+		
 		
 	}
 }
