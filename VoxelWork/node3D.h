@@ -6,6 +6,7 @@ class node3D :
 public:
     virtual void tick() override;
     glm::mat4 transform = glm::mat4(1.f);
+    glm::vec3& getPosition() { return position;};
 protected:
     glm::vec3 position;
     glm::vec3 rotation;

@@ -1,5 +1,5 @@
 #include "ChunkSpace.h"
-
+#include "camera.h"
 chunk* ChunkSpace::addChunk(int x, int y, int z)
 {
     chunk* retChunk;
@@ -100,6 +100,72 @@ chunk* ChunkSpace::getChunk(int x, int y, int z)
         }
     }
     return nullptr;
+}
+
+void ChunkSpace::render(camera& currentCamera)
+{
+    //Below is a direction culler (not fully tested) it should cull chunks you can't see
+    //for (auto& x : chunks)
+    //{
+    //    for (auto& y : x.second)
+    //    {
+    //        for (auto& z : y.second)
+    //        {
+    //            //Get the dot of cameraFront and chunkCorner-cameraPos to find if we're facing it
+    //            if (glm::dot(currentCamera.getFront(), (glm::vec3(x.first,y.first,z.first) * 16.f) - currentCamera.getPosition()) < 0)
+    //            {
+    //                z.second.setVisible(false);
+    //                
+    //            }
+    //            else
+    //            {
+    //                z.second.setVisible(true);
+    //            }
+    //        }
+    //    }
+    //}
+        
+
+
+    node::render(currentCamera);
+}
+
+void ChunkSpace::serialize(nlohmann::json& data, bool store)
+{
+    
+    for (auto& child : children)
+    {
+        chunk* chk = reinterpret_cast<chunk*>(child);
+        
+        std::vector<uint32_t>* blockToStore = chk->serialize(data);
+        
+        for (auto& blk :  *blockToStore)
+        {
+            data["BlockData"][std::to_string(chk->getChunkCoords().x)][std::to_string(chk->getChunkCoords().y)][std::to_string(chk->getChunkCoords().z)].push_back(blk);
+
+        }
+        blockToStore->clear();
+        
+    }
+    
+
+    if (store) //Store data
+    {
+        saveData = data;
+    }
+        
+}
+
+void ChunkSpace::saveToDisc()
+{
+    //Temp Save
+    std::ofstream myfile("ChunkSpace.dat");
+    if (myfile.is_open())
+    {
+        myfile << saveData;
+        myfile.close();
+    }
+    
 }
 
 

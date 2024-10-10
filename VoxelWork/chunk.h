@@ -16,7 +16,7 @@
 
 //Saving/Serializing
 #include "json.hpp"
-#include <fstream>
+
 
 class ChunkSpace;
 using uint16 = uint16_t;
@@ -115,7 +115,7 @@ public:
     virtual void render(camera& currentCamera) override;
 
     //Disk-Managment
-    void serialize(nlohmann::json& data);
+    std::vector<uint32>* serialize(nlohmann::json& data);
     // Con/Decon
     ~chunk();
     chunk();
@@ -159,5 +159,9 @@ private:
 
     //Chunk Coords
     glm::ivec3 chunkCoords = glm::ivec3(0, 0, 0);
+
+
+    //Serializing
+    std::vector<uint32>ids;
 };
 

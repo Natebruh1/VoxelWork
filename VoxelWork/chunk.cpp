@@ -15,34 +15,28 @@ chunk::chunk()
 	glGenBuffers(1, &texIndexSSBO);
 }
 
-void chunk::serialize(nlohmann::json& data)
+std::vector<uint32>* chunk::serialize(nlohmann::json& data)
 {
-	//ChunkPosition
-
+	
 	//BlockData
 	
+	ids.reserve(4096);
 	for (int x = 0; x < 16; x++)
 	{
 		for (int y = 0; y < 16; y++)
 		{
 			for (int z = 0; z < 16; z++)
 			{
-				data["Blocks"].push_back((uint32)(chunkData + (z)+(16 * y) + (256 * x))->id);
+				ids.push_back((uint32)(chunkData + (z)+(16 * y) + (256 * x))->id);
 			}
 		}
 	}
-
+	return &ids;
 	
 
 
-	//Temp Save
-	std::ofstream myfile("chunk.dat");
-	if (myfile.is_open())
-	{
-		myfile << data;
-		myfile.close();
-	}
-	;
+	
+	
 }
 
 chunk::~chunk()
@@ -188,12 +182,12 @@ void chunk::updateGeom(bool withNeighbour)
 						knownTextures.push_back(getBlock(x, y, z).id);
 						std::string blockName = blockLibrary.idBlockLookup[getBlock(x, y, z).id]; // Get the blockname
 
-						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][0]); //Add one texture per axis
-						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][1]);
-						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][2]);
-						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][3]);
-						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][4]);
-						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][5]);
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][0].c_str()); //Add one texture per axis
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][1].c_str());
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][2].c_str());
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][3].c_str());
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][4].c_str());
+						ChunkTextures.addImage(blockLibrary.BlockTextures[blockName][5].c_str());
 
 						
 					}

@@ -29,6 +29,7 @@ void camera::tick()
 	rotation.y = sin(glm::radians(pitch));
 	rotation.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraFront = glm::normalize(rotation);
+	yaw = fmod(yaw, 360.f);
 }
 
 void camera::processInput(GLFWwindow* const& windowRef,float dt)
@@ -53,4 +54,14 @@ void camera::RotateView(float x, float y)
 		pitch = 89.0f;
 	if (pitch < -89.0f)
 		pitch = -89.0f;
+}
+
+float camera::getYaw()
+{
+	return yaw;
+}
+
+glm::vec3& camera::getFront()
+{
+	return cameraFront;
 }

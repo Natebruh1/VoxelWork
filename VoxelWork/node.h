@@ -18,6 +18,7 @@ public:
 	virtual void render(camera& currentCamera);
 	virtual node& addChild(node& newChild);
 	virtual node& removeChild(node& childToRemove);
+	void setVisible(bool newVis) { visible = newVis; };
 protected:
 	bool visible = true;
 	std::vector<node*> children;

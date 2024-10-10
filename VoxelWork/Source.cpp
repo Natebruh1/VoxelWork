@@ -99,7 +99,8 @@ int main()
 
 	//Save remaining chunks
 	nlohmann::json data;
-	testChunk->serialize(data);
+	cSpace->serialize(data,true);
+	cSpace->saveToDisc();
 	
 	
 	//Definite Deletes
@@ -233,8 +234,10 @@ void Update()
 	//Add test chunk as a child
 	currentScene->addChild(*cSpace);
 	cSpace->addChunk(0,0,0,*testChunk);
-	chunk* testChunk2 = cSpace->addChunk(1, 0, 0);
+	chunk* testChunk2 = cSpace->addChunk(0, 1, 0); //Add chunk by default to chunkSpace
 	testChunk2->createFullChunk();
+	//Set an externally loaded voxel
+	testChunk2->setBlock(0, 0, 0, 4);
 	//testChunk2->createFullChunk();
 	
 	while (!glfwWindowShouldClose(window))
