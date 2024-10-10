@@ -13,6 +13,7 @@ chunk::chunk()
 	glGenVertexArrays(1, &chunkVAO); //Generate buffers and arrays
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &texIndexSSBO);
+	
 }
 
 std::vector<uint32>* chunk::serialize(nlohmann::json& data)
@@ -740,7 +741,7 @@ unsigned int chunk::prepareRender()
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	auto size = (vertices.size() * sizeof(float) * 3) + (vertices.size() * sizeof(unsigned int) * 3);
-	glBufferData(GL_ARRAY_BUFFER, size, &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, size, &vertices[0], GL_DYNAMIC_DRAW);
 	
 
 	//Add vertex attributes
@@ -763,9 +764,11 @@ unsigned int chunk::prepareRender()
 	//Find Exact amount of voxel textures we need to store in SSBO
 	uint32 totalTextures = knownTextures.size()*6; //One texture per face
 	
-
+	glDeleteBuffers(1, &texIndexSSBO);
+	glGenBuffers(1, &texIndexSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, texIndexSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * CHUNKSIZE * CHUNKSIZE * CHUNKSIZE * 6, nullptr, GL_DYNAMIC_DRAW);
 	
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32)* CHUNKSIZE * CHUNKSIZE * CHUNKSIZE *6, nullptr, GL_DYNAMIC_DRAW);
 
 	textureIndices.clear();
 	//Populate SSBO with texture indices and add the image data to the texture

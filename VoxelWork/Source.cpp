@@ -233,12 +233,16 @@ void Update()
 
 	//Add test chunk as a child
 	currentScene->addChild(*cSpace);
+
+	//Generate Chunk from ChunkSpace
 	cSpace->addChunk(0,0,0,*testChunk);
 	chunk* testChunk2 = cSpace->addChunk(0, 1, 0); //Add chunk by default to chunkSpace
 	testChunk2->createFullChunk();
+
+
 	//Set an externally loaded voxel
 	testChunk2->setBlock(0, 0, 0, 4);
-	//testChunk2->createFullChunk();
+	
 	
 	while (!glfwWindowShouldClose(window))
 	{

@@ -130,7 +130,11 @@ public:
 
 
     //Equals Operator
-    chunk& operator=(chunk& rhs)
+    chunk& operator=(chunk& rhs) noexcept
+    {
+        return rhs;
+    }
+    chunk& operator=(chunk&& rhs) noexcept
     {
         return rhs;
     }

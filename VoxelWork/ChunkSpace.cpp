@@ -9,7 +9,7 @@ chunk* ChunkSpace::addChunk(int x, int y, int z)
         retChunk = new chunk();
         addChild(*retChunk);
         //Add to chunkmap
-        chunks[x][y][z] = *retChunk;
+        chunks[x][y][z] = retChunk;
         retChunk->setChunkCoords(x, y, z);
         retChunk->alertNeighbourToUpdate();
         return retChunk;
@@ -23,7 +23,7 @@ chunk* ChunkSpace::addChunk(int x, int y, int z)
             retChunk = new chunk();
             addChild(*retChunk);
             //Add to chunkmap
-            chunks[x][y][z] = *retChunk;
+            chunks[x][y][z] = retChunk;
             retChunk->setChunkCoords(x, y, z);
             retChunk->alertNeighbourToUpdate();
             return retChunk;
@@ -36,7 +36,7 @@ chunk* ChunkSpace::addChunk(int x, int y, int z)
                 retChunk = new chunk();
                 addChild(*retChunk);
                 //Add to chunkmap
-                chunks[x][y][z] = *retChunk;
+                chunks[x][y][z] = retChunk;
                 retChunk->setChunkCoords(x, y, z);
                 retChunk->alertNeighbourToUpdate();
                 return retChunk;
@@ -54,7 +54,9 @@ chunk* ChunkSpace::addChunk(int x, int y, int z, chunk& chunkToAdd)
     {
         //X not found
         addChild(chunkToAdd);
-        chunks[x][y][z] = chunkToAdd;
+        
+        chunks[x][y][z]=&chunkToAdd;
+        
         chunkToAdd.setChunkCoords(x, y, z);
         chunkToAdd.alertNeighbourToUpdate();
         return &chunkToAdd;
@@ -66,7 +68,7 @@ chunk* ChunkSpace::addChunk(int x, int y, int z, chunk& chunkToAdd)
         {
             //Y not found
             addChild(chunkToAdd);
-            chunks[x][y][z] = chunkToAdd;
+            chunks[x][y][z] = &chunkToAdd;
             chunkToAdd.setChunkCoords(x, y, z);
             chunkToAdd.alertNeighbourToUpdate();
             return &chunkToAdd;
@@ -77,7 +79,7 @@ chunk* ChunkSpace::addChunk(int x, int y, int z, chunk& chunkToAdd)
             {
                 //z not found
                 addChild(chunkToAdd);
-                chunks[x][y][z] = chunkToAdd;
+                chunks[x][y][z] = &chunkToAdd;
                 chunkToAdd.setChunkCoords(x, y, z);
                 chunkToAdd.alertNeighbourToUpdate();
                 return &chunkToAdd;
@@ -95,7 +97,7 @@ chunk* ChunkSpace::getChunk(int x, int y, int z)
         {
             if (auto searchZ = chunks[x][y].find(z); searchZ != chunks[x][y].end())
             {
-                return &chunks[x][y][z];
+                return chunks[x][y][z];
             }
         }
     }

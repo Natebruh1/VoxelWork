@@ -20,7 +20,7 @@ public:
     void serialize(nlohmann::json& data, bool store=false);
     void saveToDisc();
 private:
-    std::map<int, std::map<int, std::map<int, chunk>>> chunks;
+    std::map<int, std::map<int, std::map<int, chunk*>>> chunks;
     nlohmann::json saveData;
 };
 
