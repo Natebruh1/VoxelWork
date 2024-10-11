@@ -99,9 +99,9 @@ public:
     unsigned int prepareRender();
     std::vector<greedyQuad> greedyMeshBinaryPlane(std::map<int, std::vector<uint16>>& inDat);
     std::vector<greedyQuad> greedyMeshBinaryPlane(std::vector<uint16>& inDat);
-
+    void greedyMeshChunk();
     //Block Editors
-    block& getBlock(int x, int y, int z);
+    inline block& getBlock(int x, int y, int z);
     void setBlock(uint32 x, uint32 y, uint32 z, uint32 id);
     void neighbourUpdate() {neighbourUpdated = true;};
     //Utility

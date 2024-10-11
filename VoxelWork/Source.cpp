@@ -226,7 +226,8 @@ void Update()
 	testChunk->setBlock(2, 0, 0, 2);
 	testChunk->setBlock(0, 0, 0, 2);
 	testChunk->setBlock(1, 0, 3, 2);
-	
+	testChunk->deleteBlock(5, 1, 0);
+	testChunk->deleteBlock(0, 1, 5);
 
 	// ---Add objects to scene---
 	currentScene->addChild(*currentCamera);

@@ -73,7 +73,7 @@ void chunk::setBlock(uint32 x, uint32 y, uint32 z, uint32 id)
 	geomUpdated = true;
 }
 
-block& chunk::getBlock(int x, int y, int z)
+inline block& chunk::getBlock(int x, int y, int z)
 {
 	
 	if (x < 0 or y < 0 or z < 0 or x>15 or y>15 or z>15)
@@ -292,208 +292,7 @@ void chunk::updateGeom(bool withNeighbour)
 	vertices.clear();
 	chunkQuads.clear();
 	///// ----PART 2 GREEDYMESH---- /////
-	for (int i = 0; i < 6; i++) //Don't use auto& i here for readability ~ Once for each axis (+ve and -ve)
-	{
-		for (int plane = 0; plane < 16; plane++)
-		{
-			if (auto search = data[i].find(plane); search != data[i].end())
-			{
-				std::vector<greedyQuad> quads= greedyMeshBinaryPlane(data[i][plane]); //Plane found inside data, begin greedy meshing!
-				chunkQuads.insert(chunkQuads.end(), std::make_move_iterator(quads.begin()),
-					std::make_move_iterator(quads.end()));
-				
-				//Now add to vertices based upon direction
-				for (auto& quad : quads)
-				{
-					switch (i)
-					{
-					case 0: //X-Forwards Planes
-						//TRIANGLE 1
-						//Bottom Left
-						vertices.push_back({ glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x), //Position
-							0,																						//Axis
-							{0,quad.h}});																			//Width/Height
-						//Top Left
-						vertices.push_back({glm::vec3((float)plane, (float)quad.y, (float)quad.x),
-							0,
-							{ 0,0 }});
-						//Top Right
-						vertices.push_back({ glm::vec3((float)plane, (float)quad.y, (float)quad.x + (float)quad.w),
-							0,
-							{quad.w,0}});
-						//TRIANGLE 2
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x),
-							0,
-							{0,quad.h}});
-						//Top Right
-						vertices.push_back({glm::vec3((float)plane, (float)quad.y, quad.x + (float)quad.w),
-							0,
-							{quad.w,0} });
-						//Bottom Right
-						vertices.push_back({glm::vec3((float)plane, (float)quad.y + (float)quad.h, quad.x + (float)quad.w),
-							0,
-							{quad.w,quad.h}});
-						break;
-					case 1: //X-Backwards Planes
-						//TRIANGLE 1
-						//Top Right
-						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x + (float)quad.w),
-							1,
-							{quad.w,0}});
-						//Top Left
-						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x),
-							1,
-							{0,0}});
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x),
-							1,
-							{0,quad.h}});
-
-						//TRIANGLE 2
-						//Bottom Right
-						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, quad.x + (float)quad.w),
-							1,
-							{quad.w,quad.h}});
-						//Top Right
-						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y, quad.x + (float)quad.w),
-							1,
-							{quad.w,0}});
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x),
-							1,
-							{0,quad.h}});
-						break;
-					case 2: //Z-Right Planes
-						//TRIANGLE 1
-						//Top Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane),
-							2,
-							{quad.w,0}});
-						//Top Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y, (float)plane),
-							2,
-							{0,0}});
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane),
-							2,
-							{0,quad.h}});
-
-						//TRIANGLE 2
-						//Bottom Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane),
-							2,
-							{quad.w,quad.h}});
-						//Top Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane),
-							2,
-							{quad.w,0}});
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane),
-							2,
-							{0,quad.h}});
-
-						break;
-					case 3: //Z-Left Planes
-						//TRIANGLE 1
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane+1.f),
-							3,
-							{0,quad.h}});
-						//Top Left
-						vertices.push_back({ glm::vec3((float)quad.x, (float)quad.y, (float)plane + 1.f),
-							3,
-							{0,0} });
-						//Top Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f),
-							3,
-							{quad.w,0}});
-						//TRIANGLE 2
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane+1.f),
-							3,
-							{0,quad.h}});
-						//Top Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane+1.f),
-							3,
-							{quad.w,0}});
-						//Bottom Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane+1.f),
-							3,
-							{quad.w,quad.h}});
-						break;
-					case 4: //Y-Up Planes
-						//TRIANGLE 1
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h),
-							4,
-							{0,quad.h}});
-						//Top Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)plane, (float)quad.y),
-							4,
-							{0,0}});
-						//Top Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y),
-							4,
-							{quad.w,0}});
-						//TRIANGLE 2
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h),
-							4,
-							{0,quad.h}});
-						//Top Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y),
-							4,
-							{quad.w,0}});
-						//Bottom Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y + (float)quad.h),
-							4,
-							{quad.w,quad.h}});
-
-						break;
-					case 5: //Y-Down Planes
-
-						//TRIANGLE 1
-						
-						//Top Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y),
-							5,
-							{quad.w,0}});
-						
-						//Top Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)plane+1.f, (float)quad.y),
-							5,
-							{0,0}});
-						
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y + (float)quad.h),
-							5,
-							{0,quad.h}});
-
-						//TRIANGLE 2
-						//Bottom Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y + (float)quad.h),
-							5,
-							{quad.w,quad.h}});
-
-						//Top Right
-						vertices.push_back({glm::vec3((float)quad.x + (float)quad.w, (float)plane+1.f, (float)quad.y),
-							5,
-							{quad.w,0}});
-
-						//Bottom Left
-						vertices.push_back({glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y + (float)quad.h),
-							5,
-							{0,quad.h}});
-						break;
-					}
-					//vertices.push_back(glm::vec3(quad.x,3,4))
-				}
-			}
-			
-		}
-		
-	}
+	greedyMeshChunk();
 	prepareRender();
 
 	geomUpdated = false;
@@ -647,6 +446,217 @@ std::vector<greedyQuad> chunk::greedyMeshBinaryPlane(std::vector<uint16>& inDat)
 	return quads;
 }
 
+void chunk::greedyMeshChunk()
+{
+	//Prepares geom from data
+	for (int i = 0; i < 6; i++) //Don't use auto& i here for readability ~ Once for each axis (+ve and -ve)
+	{
+		for (int plane = 0; plane < 16; plane++)
+		{
+			if (auto search = data[i].find(plane); search != data[i].end())
+			{
+				std::vector<greedyQuad> quads = greedyMeshBinaryPlane(data[i][plane]); //Plane found inside data, begin greedy meshing!
+				chunkQuads.insert(chunkQuads.end(), std::make_move_iterator(quads.begin()),
+					std::make_move_iterator(quads.end()));
+
+				//Now add to vertices based upon direction
+				for (auto& quad : quads)
+				{
+					
+					switch (i)
+					{
+					case 0: //X-Forwards Planes
+						//Calculate AO
+						
+
+						//TRIANGLE 1
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x), //Position
+							0,																						//Axis
+							{0,quad.h} });																			//Width/Height
+						//Top Left
+						vertices.push_back({ glm::vec3((float)plane, (float)quad.y, (float)quad.x),
+							0,
+							{ 0,0 } });
+						//Top Right
+						vertices.push_back({ glm::vec3((float)plane, (float)quad.y, (float)quad.x + (float)quad.w),
+							0,
+							{quad.w,0} });
+						//TRIANGLE 2
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)plane, (float)quad.y + (float)quad.h, (float)quad.x),
+							0,
+							{0,quad.h} });
+						//Top Right
+						vertices.push_back({ glm::vec3((float)plane, (float)quad.y, quad.x + (float)quad.w),
+							0,
+							{quad.w,0} });
+						//Bottom Right
+						vertices.push_back({ glm::vec3((float)plane, (float)quad.y + (float)quad.h, quad.x + (float)quad.w),
+							0,
+							{quad.w,quad.h} });
+						break;
+					case 1: //X-Backwards Planes
+						//TRIANGLE 1
+						//Top Right
+						vertices.push_back({ glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x + (float)quad.w),
+							1,
+							{quad.w,0} });
+						//Top Left
+						vertices.push_back({ glm::vec3((float)plane + 1.f, (float)quad.y, (float)quad.x),
+							1,
+							{0,0} });
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x),
+							1,
+							{0,quad.h} });
+
+						//TRIANGLE 2
+						//Bottom Right
+						vertices.push_back({ glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, quad.x + (float)quad.w),
+							1,
+							{quad.w,quad.h} });
+						//Top Right
+						vertices.push_back({ glm::vec3((float)plane + 1.f, (float)quad.y, quad.x + (float)quad.w),
+							1,
+							{quad.w,0} });
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)plane + 1.f, (float)quad.y + (float)quad.h, (float)quad.x),
+							1,
+							{0,quad.h} });
+						break;
+					case 2: //Z-Right Planes
+						//TRIANGLE 1
+						//Top Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane),
+							2,
+							{quad.w,0} });
+						//Top Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)quad.y, (float)plane),
+							2,
+							{0,0} });
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane),
+							2,
+							{0,quad.h} });
+
+						//TRIANGLE 2
+						//Bottom Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane),
+							2,
+							{quad.w,quad.h} });
+						//Top Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane),
+							2,
+							{quad.w,0} });
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane),
+							2,
+							{0,quad.h} });
+
+						break;
+					case 3: //Z-Left Planes
+						//TRIANGLE 1
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane + 1.f),
+							3,
+							{0,quad.h} });
+						//Top Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)quad.y, (float)plane + 1.f),
+							3,
+							{0,0} });
+						//Top Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane + 1.f),
+							3,
+							{quad.w,0} });
+						//TRIANGLE 2
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)quad.y + (float)quad.h, (float)plane + 1.f),
+							3,
+							{0,quad.h} });
+						//Top Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)quad.y, (float)plane + 1.f),
+							3,
+							{quad.w,0} });
+						//Bottom Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)quad.y + (float)quad.h, (float)plane + 1.f),
+							3,
+							{quad.w,quad.h} });
+						break;
+					case 4: //Y-Up Planes
+						//TRIANGLE 1
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h),
+							4,
+							{0,quad.h} });
+						//Top Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)plane, (float)quad.y),
+							4,
+							{0,0} });
+						//Top Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y),
+							4,
+							{quad.w,0} });
+						//TRIANGLE 2
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)plane, (float)quad.y + (float)quad.h),
+							4,
+							{0,quad.h} });
+						//Top Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y),
+							4,
+							{quad.w,0} });
+						//Bottom Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)plane, (float)quad.y + (float)quad.h),
+							4,
+							{quad.w,quad.h} });
+
+						break;
+					case 5: //Y-Down Planes
+
+						//TRIANGLE 1
+
+						//Top Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y),
+							5,
+							{quad.w,0} });
+
+						//Top Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y),
+							5,
+							{0,0} });
+
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y + (float)quad.h),
+							5,
+							{0,quad.h} });
+
+						//TRIANGLE 2
+						//Bottom Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y + (float)quad.h),
+							5,
+							{quad.w,quad.h} });
+
+						//Top Right
+						vertices.push_back({ glm::vec3((float)quad.x + (float)quad.w, (float)plane + 1.f, (float)quad.y),
+							5,
+							{quad.w,0} });
+
+						//Bottom Left
+						vertices.push_back({ glm::vec3((float)quad.x, (float)plane + 1.f, (float)quad.y + (float)quad.h),
+							5,
+							{0,quad.h} });
+						break;
+					}
+					//vertices.push_back(glm::vec3(quad.x,3,4))
+				}
+			}
+
+		}
+
+	}
+}
+
 
 
 
@@ -719,7 +729,7 @@ void chunk::render(camera& currentCamera)
 
 	//Bind Buffers and draw call
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, texIndexSSBO);
+	
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindVertexArray(chunkVAO); //Now bind openGL to the correct vertex array
@@ -767,7 +777,7 @@ unsigned int chunk::prepareRender()
 	glDeleteBuffers(1, &texIndexSSBO);
 	glGenBuffers(1, &texIndexSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, texIndexSSBO);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * CHUNKSIZE * CHUNKSIZE * CHUNKSIZE * 6, nullptr, GL_DYNAMIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * CHUNKSIZE * CHUNKSIZE * CHUNKSIZE * 12, nullptr, GL_DYNAMIC_DRAW);
 	
 
 	textureIndices.clear();
@@ -786,6 +796,12 @@ unsigned int chunk::prepareRender()
 					textureIndices.push_back(uint32(-1));
 					textureIndices.push_back(uint32(-1));
 					textureIndices.push_back(uint32(-1));
+					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
+					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
+					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
+					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
+					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
+					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
 					continue;
 				}
 				auto search = std::find(knownTextures.begin(), knownTextures.end(), getBlock(x, y, z).id);
@@ -796,6 +812,130 @@ unsigned int chunk::prepareRender()
 				textureIndices.push_back(uint32((index * 6) + 3));
 				textureIndices.push_back(uint32((index * 6) + 4));
 				textureIndices.push_back(uint32((index * 6) + 5));
+				//Start finding occluded blocks
+				unsigned int BlockSurrounding = 0;
+				uint32 s = 0;
+				// X-Positive
+				//Bottom Left Vertex
+				BlockSurrounding |= ((axis_col[(x)+((y+1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 0; // Left Block
+				BlockSurrounding |= ((axis_col[(x)+((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 1; // Bottom Left Corner
+				BlockSurrounding |= ((axis_col[(x)+((y) * 18) + chunk_size_p2].data & 0b1 << (z+1)) >> (z+1)) << 2; // Bottom Block
+				
+				
+				//Bottom Right Vertex
+				BlockSurrounding |= ((axis_col[(x)+((y) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 3; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x)+((y) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 4; // Bottom Right Corner
+				BlockSurrounding |= ((axis_col[(x)+((y+1) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 5; // Right Block
+				//Top Right Vertex
+				BlockSurrounding |= ((axis_col[(x)+((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 6; // Right Block
+				BlockSurrounding |= ((axis_col[(x)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 7; // Top Right Corner
+				BlockSurrounding |= ((axis_col[(x)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 8; // Top Block
+				//Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 9; // Top Block
+				BlockSurrounding |= ((axis_col[(x)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 10; // Top Left Corner
+				BlockSurrounding |= ((axis_col[(x)+((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 11; // Left Block
+
+				textureIndices.push_back(BlockSurrounding); //Ambient Occlusion Value
+				BlockSurrounding = 0;
+				// X-Negative
+
+				//Bottom Left Vertex
+				BlockSurrounding |= ((axis_col[(x+2)+((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 0; // Left Block
+				BlockSurrounding |= ((axis_col[(x+2)+((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 1; // Bottom Left Corner
+				BlockSurrounding |= ((axis_col[(x+2)+((y) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 2; // Bottom Block
+				//Bottom Right Vertex
+				BlockSurrounding |= ((axis_col[(x+2)+((y) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 3; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x+2)+((y) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 4; // Bottom Right Corner
+				BlockSurrounding |= ((axis_col[(x+2)+((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 5; // Right Block
+				//Top Right Vertex
+				BlockSurrounding |= ((axis_col[(x+2)+((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 6; // Right Block
+				BlockSurrounding |= ((axis_col[(x+2)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 7; // Top Right Corner
+				BlockSurrounding |= ((axis_col[(x+2)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 8; // Top Block
+				//Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x+2)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 9; // Top Block
+				BlockSurrounding |= ((axis_col[(x+2)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 10; // Top Left Corner
+				BlockSurrounding |= ((axis_col[(x+2)+((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 11; // Left Block
+
+				textureIndices.push_back(BlockSurrounding); //Ambient Occlusion Value
+				BlockSurrounding = 0;
+				//Z-Positive
+				//Bottom Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 0; // Left Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 1; // Bottom Left Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 2; // Bottom Block
+				//Bottom Right Vertex
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 3; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 4; // Bottom Right Corner
+				BlockSurrounding |= ((axis_col[(x + 2)+((y+1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 5; // Right Block
+				//Top Right Vertex
+				BlockSurrounding |= ((axis_col[(x + 2)+((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 6; // Right Block
+				BlockSurrounding |= ((axis_col[(x + 2)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 7; // Top Right Corner
+				BlockSurrounding |= ((axis_col[(x+1)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 8; // Top Block
+				//Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 9; // Top Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 10; // Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 11; // Left Block
+
+				textureIndices.push_back(BlockSurrounding); //Ambient Occlusion Value
+				BlockSurrounding = 0;
+				//Z-Negative
+				//Bottom Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 0; // Left Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 1; // Bottom Left Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 2; // Bottom Block
+				//Bottom Right Vertex
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 3; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 4; // Bottom Right Corner
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 5; // Right Block
+				//Top Right Vertex
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 6; // Right Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 7; // Top Right Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 8; // Top Block
+				//Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 9; // Top Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 10; // Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) < 11;
+
+				textureIndices.push_back(BlockSurrounding); //Ambient Occlusion Value
+				BlockSurrounding = 0;
+				//Y-Positive
+				//Bottom Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 0; // Left Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) << 1; // Bottom Left Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) << 2; // Bottom Block
+				//Bottom Right Vertex
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) << 3; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) << 4; // Bottom Right Corner
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 5; // Right Block
+				//Top Right Vertex
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 6; // Right Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 7; // Top Right Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 8; // Top Block
+				//Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 9; // Top Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 10; // Top Left Corner
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 11; // Left Block
+
+				textureIndices.push_back(BlockSurrounding); //Ambient Occlusion Value
+				BlockSurrounding = 0;
+				//Y-Negative
+				//Bottom Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 0; // Left Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) << 1; // Bottom Left Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) << 2; // Bottom Block
+				//Bottom Right Vertex
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) << 3; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) << 4; // Bottom Right Corner
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 5; // Right Block
+				//Top Right Vertex
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 6; // Right Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 7; // Top Right Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 8; // Top Block
+				//Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 9; // Top Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 10; // Top Left Corner
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 11; // Left Block
+				textureIndices.push_back(BlockSurrounding); //Ambient Occlusion Value
 				
 			}
 		}
