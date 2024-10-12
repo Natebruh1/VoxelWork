@@ -58,7 +58,7 @@ void main()
 
     //Ambient Occlusion
     float ambientValue=(1.0-texCoord.x)*(1.0-texCoord.y)*float(bottomLeft)+texCoord.x*(1.0-texCoord.y)*float(bottomRight)+texCoord.x*texCoord.y*float(topRight)+(1.0-texCoord.x)*texCoord.y*float(topLeft);
-    float AOPower=0.25;
+    float AOPower=0.3;//0.3
     FragColor=FragColor*(1.0-(ambientValue)*AOPower);
     
     

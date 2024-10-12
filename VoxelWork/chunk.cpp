@@ -861,16 +861,16 @@ unsigned int chunk::prepareRender()
 				//Z-Positive
 				//Bottom Left Vertex
 				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 0; // Left Block
-				BlockSurrounding |= ((axis_col[(x + 0) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 1; // Bottom Left Corner
-				BlockSurrounding |= ((axis_col[(x + 1) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 2; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 1; // Bottom Left Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 2; // Bottom Block
 				//Bottom Right Vertex
-				BlockSurrounding |= ((axis_col[(x + 1) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 3; // Bottom Block
-				BlockSurrounding |= ((axis_col[(x + 2) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 4; // Bottom Right Corner
-				BlockSurrounding |= ((axis_col[(x + 2)+((y+1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 5; // Right Block
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 3; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 4; // Bottom Right Corner
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 5; // Right Block
 				//Top Right Vertex
-				BlockSurrounding |= ((axis_col[(x + 2)+((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 6; // Right Block
-				BlockSurrounding |= ((axis_col[(x + 2)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 7; // Top Right Corner
-				BlockSurrounding |= ((axis_col[(x+1)+((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 8; // Top Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 6; // Right Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 7; // Top Right Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 8; // Top Block
 				//Top Left Vertex
 				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 9; // Top Block
 				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z)) >> (z)) << 10; // Top Left Vertex
@@ -881,20 +881,20 @@ unsigned int chunk::prepareRender()
 				//Z-Negative
 				//Bottom Left Vertex
 				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 0; // Left Block
-				BlockSurrounding |= ((axis_col[(x + 0) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 1; // Bottom Left Corner
-				BlockSurrounding |= ((axis_col[(x + 1) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 2; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 1; // Bottom Left Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 2; // Bottom Block
 				//Bottom Right Vertex
-				BlockSurrounding |= ((axis_col[(x + 1) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 3; // Bottom Block
-				BlockSurrounding |= ((axis_col[(x + 2) + ((y) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 4; // Bottom Right Corner
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 3; // Bottom Block
+				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 4; // Bottom Right Corner
 				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 5; // Right Block
 				//Top Right Vertex
 				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 6; // Right Block
 				BlockSurrounding |= ((axis_col[(x + 2) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 7; // Top Right Corner
 				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 8; // Top Block
 				//Top Left Vertex
-				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 9; // Top Block
-				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z+2)) >> (z+2)) << 10; // Top Left Vertex
-				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) < 11;
+				BlockSurrounding |= ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 9; // Top Block
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 10; // Top Left Vertex
+				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) << 11; // Left Block
 
 				textureIndices.push_back(BlockSurrounding); //Ambient Occlusion Value
 				BlockSurrounding = 0;
