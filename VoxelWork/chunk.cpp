@@ -9,10 +9,14 @@ SparseBindlessTextureArray	chunk::ChunkTextures;
 chunk::chunk()
 {
 	chunkData = new block[16 * 16 * 16];
-
+	lightfield = new uint16[CHUNKSIZE * CHUNKSIZE]{ 0 }; //X, Y and Z in the bits
 	glGenVertexArrays(1, &chunkVAO); //Generate buffers and arrays
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &texIndexSSBO);
+	glGenBuffers(1, &lightIndexSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightIndexSSBO);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightIndexSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * CHUNKSIZE * CHUNKSIZE * CHUNKSIZE * 6, nullptr, GL_DYNAMIC_DRAW);
 	
 }
 
@@ -43,12 +47,36 @@ std::vector<uint32>* chunk::serialize(nlohmann::json& data)
 chunk::~chunk()
 {
 	delete[] chunkData;
+	delete[] lightfield;
 	//Delete Buffers
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &texIndexSSBO);
 	
 	glDeleteVertexArrays(1, &chunkVAO);
+	
+	//Delete std::vector
+	chunkQuads.clear();
+	vertices.clear();
+	data.clear();
+	textureIndices.clear();
+
+
+	//Join Threads
+	try
+	{
+	
+		if (lightCalcThread.joinable())
+		{
+			lightCalcThread.join();
+		}
+
+	}
+	catch (std::exception e)
+	{
+		std::cout <<"Error Joining Light Thread during chunk dectruction : "<< e.what() << std::endl;
+	}
+
 	
 	
 }
@@ -657,6 +685,494 @@ void chunk::greedyMeshChunk()
 	}
 }
 
+void chunk::updateChunkLighting(uint16* field)
+{
+
+	glm::ivec3 lightVoxelCoords = glm::ivec3(1, 0, 1); //Position of light
+	unsigned int lightLevel = 6; //Strength of light
+
+	glm::ivec3 localLightCoords = lightVoxelCoords - 16 * chunkCoords;
+
+
+	//TODO
+	// Update to use thread pool
+	// Update to read from light manager
+
+
+	if (field)
+	{
+		// We have light data already and want to flood without worrying about lights
+		lightCalcThread = std::thread([this, localLightCoords, lightLevel]() {floodBlockLighting(localLightCoords, lightLevel, lightfield); });
+	}
+
+
+	//For Lights in LightManager
+		//Get Light VoxelCoords
+		//if LightVoxelCoords-(16.0*chunkCoords) > -17 and < 16 then
+			
+			//If LightCoords inside this chunk then start flooding
+				//flood
+					//If flood tries to go out of bounds then mark a chunk for updateChunkLighting
+			//else
+	// For...
+		// GetCoords...
+	//For now assume we have a light at 1,0,1
+
+
+	//Light Data
+	
+	if ((abs(localLightCoords.x) <= lightLevel) and (abs(localLightCoords.y) <= lightLevel) and (abs(localLightCoords.z) <= lightLevel))
+	{
+		//The coordinates where the light started
+		glm::ivec3 startingChunkCoords = chunkCoords - glm::ivec3((int)localLightCoords.x < 0, (int)localLightCoords.y < 0, (int)localLightCoords.z<0);
+		if (startingChunkCoords == chunkCoords) {
+			
+			
+			
+			//Calculate this chunks lighting
+			
+			if (field)
+			{
+				lightCalcThread = std::thread([this, localLightCoords, lightLevel]() {floodBlockLighting(localLightCoords, lightLevel,lightfield); });
+			}
+			else
+			{
+				lightCalcThread = std::thread([this, localLightCoords, lightLevel]() {floodBlockLighting(localLightCoords, lightLevel); });
+			}
+			//floodBlockLighting(localLightCoords, allowedDirections, 8);
+			
+			//...neighbouringChunk->updateChunkLighting()
+		}
+		
+		
+	}
+	lightUpdated = false;
+}
+
+std::vector<uint32> chunk::floodBlockLighting(glm::ivec3 voxelPos, unsigned int lightStrength, uint16* field)
+{
+	unsigned int x = voxelPos.x;
+	unsigned int y = voxelPos.y;
+	unsigned int z = voxelPos.z;
+
+	std::vector<node*> neighbourToUpdate;
+	neighbourToUpdate.resize(6);
+
+	//Compare light to overlap map and remove light bit if necessary
+	unsigned int currLightLevel = lightStrength;
+	std::map<unsigned int,uint16*> lightfieldLevels; //Contains different lightfield levels to saturate
+	std::lock_guard<std::mutex> lk(lightMutex);
+	if (field)
+	{
+		
+		for (int vX = 0; vX < 16; vX++)
+		{
+			for (int vY = 0; vY < 16; vY++)
+			{
+				for (int vZ = 0; vZ < 16; vZ++)
+				{
+					if (((*(field + vX + 16 * (vY)) >> vZ) & 0b1) > 0) //Essentially if we have light in the field detected
+					{
+						int potentialLightStrength = getBlock(vX, vY, vZ).lightLevel;
+						if (lightfieldLevels.contains(potentialLightStrength)) //If we've already detected a voxel at this light level
+						{
+							*(lightfieldLevels[potentialLightStrength] + vX + (16 * vY)) |= 0b1 << vZ; //Write in the lightfield bit
+						}
+						else //We don't have this lightlevel yet found
+						{
+							lightfieldLevels[potentialLightStrength] = new uint16[CHUNKSIZE * CHUNKSIZE]{ 0 };
+							*(lightfieldLevels[potentialLightStrength] + vX + (16 * vY)) |= 0b1 << vZ;
+						}
+					}
+				}
+			}
+		}
+		//Go through field and split it into separate bits (based upon lightStrength) that can be read into a map, then each time that we decrease currLightLevel,
+		//We read in the bits of the map
+		//std::cout << "Field:Line 775\n";
+		
+	}
+	else //Default lightfield (empty), i.e we're not reading from a neighbour
+	{
+		
+		
+		if (getBlock(voxelPos.x, voxelPos.y, voxelPos.z).lightLevel >= lightStrength) return lightingIndices; //No point in doing duplicate calculations
+		if ((lightStrength - 1 < 16) and (getBlock(voxelPos.x, voxelPos.y, voxelPos.z).lightLevel < lightStrength - 1))
+		{
+			getBlock(voxelPos.x, voxelPos.y, voxelPos.z).lightLevel = lightStrength;
+		}
+		lightfieldLevels[currLightLevel] = new uint16[CHUNKSIZE * CHUNKSIZE]{ 0 };
+		*(lightfieldLevels[currLightLevel] + x + (y * 16)) = 0b1 << z;
+	}
+	
+	
+	
+	
+
+	
+	//Represent Light as single bit in lightField
+	//Find New Bits in lightField by comparing the current lightField and old Lightfield and set the blocks lightLevel to lightStrength (if it's higher)
+	//Reduce Light Strength by 1
+	//Saturate (spread) out
+	//Then compare saturated light to solid block bitmap and copy into an overlap map
+	//Saturate the overlap map based upon its local vector
+
+	
+	if (lightfield) delete[] lightfield;
+	lightfield = new uint16[CHUNKSIZE * CHUNKSIZE]{ 0 };
+	uint16* oldLightfield = new uint16[CHUNKSIZE * CHUNKSIZE]{ 0 };
+	
+	//For Readability
+	
+
+	//*(lightfield+x + (y * 16)) = (0b1 << z); //Set the light origin to its position
+	
+	uint16* overlapMap = new uint16[CHUNKSIZE * CHUNKSIZE]{ 0 };
+	//memset(overlapMap, 0, 256*sizeof(*overlapMap));
+
+	//std::cout << "StartLightSpread:Line 816\n";
+	while (currLightLevel > 0)
+	{	
+		//Read in lightfieldLevel
+		if (lightfieldLevels.contains(currLightLevel))
+		{
+			for (uint16 dy = 0; dy < 16; dy++)
+			{
+				for (uint16 dx = 0; dx < 16; dx++)
+				{
+					if (!lightfield) lightfield = new uint16[CHUNKSIZE * CHUNKSIZE]{ 0 }; //Create lightfield if not created
+					*(lightfield + dx + (dy * 16)) = *(lightfieldLevels[currLightLevel] + dx + (dy * 16));
+					//delete[] (lightfieldLevels[currLightLevel]);
+				}
+			}
+		}
+		
+		//Change the light of the blocks
+		uint16 newLights[16 * 16]{};
+		for (uint16 dy = 0; dy < 16; dy++)
+		{
+			for (uint16 dx = 0; dx < 16; dx++)
+			{
+				if (*(lightfield + dx + (dy * 16)) == 0) 
+					continue; 
+				
+				newLights[dx + (16 * dy)] = *(lightfield + dx+(16*dy)) & ~*(oldLightfield + dx + (16 * dy)); // Copy in the newlights
+				
+				
+				
+				uint16 e = (axis_col[(dx + 1) + ((dy + 1) * 18) + chunk_size_p2].data >> 1);
+				//Find where solid blocks overlaps with light blocks we are trying to make
+				*(overlapMap + dx + (16 * dy)) |= ((newLights[dx + (16 * dy)]) & (axis_col[(dx + 1) + ((dy + 1) * 18) + chunk_size_p2].data>>1));
+				
+				
+				//Get a map of projected light trying to overlap with solid blocks
+				//if (*(overlapMap + dx + (16 * dy)))
+				//{
+				//	//Saturate the Overlap Map
+				//	//X Direction
+				//	if (dx >= x and dx < 15) //If current X is greater than or equal to lightsource X
+				//	{
+				//		//Grow in positive x Direction
+				//		*(overlapMap + dx + 1 + (16 * dy)) = *(overlapMap + dx + (16 * dy));
+
+				//	}
+				//	if (dx <= x and dx > 0) //If current X is less than or equal to lightsource X
+				//	{
+				//		//Grow in negative x Direction
+				//		*(overlapMap + dx - 1 + (16 * dy)) = *(overlapMap + dx + (16 * dy));
+
+				//	}
+
+				//	//Y Direction
+
+				//	if (dy >= y and dy < 15) //If current Y is greater than or equal to lightsource Y
+				//	{
+				//		//Grow in positive y Direction
+				//		*(overlapMap + dx + (16 * (dy + 1))) = *(overlapMap + dx + (16 * dy));
+				//	}
+				//	if (dy <= y and dy > 0) //If current Y is less than or equal to lightsource Y
+				//	{
+				//		//Grow in negative y Direction
+				//		*(overlapMap + dx + (16 * (dy - 1))) = *(overlapMap + dx + (16 * dy));
+				//	}
+
+				//	// Z Direction
+
+				//	//Grow in positive z Direction
+				//	if (z >= *(overlapMap + dx + (16 * dy)))
+				//	{
+				//		*(overlapMap + dx + (16 * dy)) |= *(overlapMap + dx + (16 * dy)) << 1;
+				//	}
+
+
+				//	//Grow in negative z Direction
+				//	if (z <= *(overlapMap + dx + (16 * dy)))
+				//	{
+				//		*(overlapMap + dx + (16 * dy)) |= *(overlapMap + dx + (16 * dy)) >> 1;
+				//	}
+				//}
+				
+				
+
+				//Now that the overlap map is saturated, we use it as a mask to hide certain areas on new lights;
+
+				newLights[dx + (16 * dy)] &= ~*(overlapMap + dx + (16 * dy));
+				*(lightfield + dx + (16 * dy)) &= ~*(overlapMap + dx + (16 * dy));
+				//Now we write new Lights into their respective blocks in chunkData
+				for (int dz = 0; dz < 16; dz++)
+				{
+					if ((newLights[dx + 16 * dy] & (0b1 << dz)) > 0)
+					{
+						if (auto blockPtr = (chunkData + dz + (dy * 16) + (dx * 256)); blockPtr->lightLevel < currLightLevel)
+						{
+							blockPtr->lightLevel = currLightLevel;
+						}
+						
+					}
+				}
+				
+
+				
+			}
+			
+		}
+		//std::cout << "LightSpreadHalfPoint:Line 922\n";
+		for (int i=0; i<256;i++)
+			*(oldLightfield + i) = *(lightfield + i); //Update the oldLights to match the new
+		for (uint16 dy = 0; dy < 16; dy++)
+		{
+			for (uint16 dx = 0; dx < 16; dx++)
+			{
+				//Saturate newLights in X Direction
+				if (dx < 15)
+					*(lightfield + dx + 1 + (16 * (dy + 0))) |= *(lightfield + dx + (16 * (dy + 0)));
+				else if (auto neighbourChunk = reinterpret_cast<ChunkSpace*>(parent)->getChunk(chunkCoords.x + 1, chunkCoords.y, chunkCoords.z); !field and neighbourChunk)
+				{
+					//NeighbourChunk should always have a lightfield since it's created inside the constructor
+					*(neighbourChunk->lightfield + 0 + (16 * (dy + 0))) |= *(lightfield + dx + (16 * (dy + 0)));
+					if (*(lightfield + dx + (16 * (dy + 0))) != 0) //Update the light levels of blocks
+					{
+						int count = 0;
+						for (uint32 intSlice = *(lightfield + dx + (16 * (dy + 0))); intSlice != 0; intSlice=intSlice >> 1)
+						{
+							auto blockPtr = (neighbourChunk->chunkData + ((intSlice & 0b1) * count) + 16 * dy + (256 * 0));
+							blockPtr->lightLevel = currLightLevel>blockPtr->lightLevel ? currLightLevel : blockPtr->lightLevel;
+							count++;
+						}
+						neighbourToUpdate[0] = neighbourChunk;
+					}
+					
+				}
+				if (dx > 0)
+					*(lightfield + dx - 1 + (16 * (dy + 0))) |= *(lightfield + dx + (16 * (dy + 0)));
+				else if (auto neighbourChunk = reinterpret_cast<ChunkSpace*>(parent)->getChunk(chunkCoords.x - 1, chunkCoords.y, chunkCoords.z); !field and neighbourChunk)
+				{
+					//NeighbourChunk should always have a lightfield since it's created inside the constructor
+					*(neighbourChunk->lightfield + 15 + (16 * (dy + 0))) |= *(lightfield + dx + (16 * (dy + 0)));
+
+					if (*(lightfield + dx + (16 * (dy + 0))) != 0) //Update the light levels of blocks
+					{
+						int count = 0;
+						for (uint32 intSlice = *(lightfield + dx + (16 * (dy + 0))); intSlice != 0; intSlice = intSlice >> 1)
+						{
+							auto blockPtr = (neighbourChunk->chunkData + ((intSlice & 0b1) * count) + 16 * dy + (256 * 15));
+							blockPtr->lightLevel = currLightLevel > blockPtr->lightLevel ? currLightLevel : blockPtr->lightLevel;
+							count++;
+						}
+						neighbourToUpdate[1] = neighbourChunk;
+					}
+					
+				}
+				//Now in Y
+				//Saturate newLights in Y Direction
+				if (dy < 15)
+					*(lightfield + dx + 0 + (16 * (dy + 1))) |= *(lightfield + dx + (16 * (dy + 0)));
+				else if (auto neighbourChunk = reinterpret_cast<ChunkSpace*>(parent)->getChunk(chunkCoords.x, chunkCoords.y + 1, chunkCoords.z); !field and neighbourChunk)
+				{
+					//NeighbourChunk should always have a lightfield since it's created inside the constructor
+					*(neighbourChunk->lightfield + dx + (16 * (0))) |= *(lightfield + dx + (16 * (dy + 0)));
+
+					if (*(lightfield + dx + (16 * (dy + 0))) != 0) //Update the light levels of blocks
+					{
+						int count = 0;
+						for (uint32 intSlice = *(lightfield + dx + (16 * (dy + 0))); intSlice != 0; intSlice = intSlice >> 1)
+						{
+							auto blockPtr = (neighbourChunk->chunkData + ((intSlice & 0b1) * count) + 16 * 0 + (256 * dx));
+							blockPtr->lightLevel = currLightLevel > blockPtr->lightLevel ? currLightLevel : blockPtr->lightLevel;
+							count++;
+						}
+						neighbourToUpdate[2] = neighbourChunk;
+					}
+				}
+				if (dy > 0)
+					*(lightfield + dx + 0 + (16 * (dy - 1))) |= *(lightfield + dx + (16 * (dy + 0)));
+				else if (auto neighbourChunk = reinterpret_cast<ChunkSpace*>(parent)->getChunk(chunkCoords.x, chunkCoords.y-1, chunkCoords.z); !field and neighbourChunk)
+				{
+					//NeighbourChunk should always have a lightfield since it's created inside the constructor
+					*(neighbourChunk->lightfield + dx + (16 * (15))) |= *(lightfield + dx + (16 * (dy + 0)));
+
+					if (*(lightfield + dx + (16 * (dy + 0))) != 0) //Update the light levels of blocks
+					{
+						int count = 0;
+						for (uint32 intSlice = *(lightfield + dx + (16 * (dy + 0))); intSlice != 0; intSlice = intSlice >> 1)
+						{
+							auto blockPtr = (neighbourChunk->chunkData + ((intSlice & 0b1) * count) + 16 * 15 + (256 * dx));
+							blockPtr->lightLevel = currLightLevel > blockPtr->lightLevel ? currLightLevel : blockPtr->lightLevel;
+							count++;
+						}
+						neighbourToUpdate[3] = neighbourChunk;
+					}
+				}
+
+				//Now in Z we just bitshift left and right to grow in Z
+
+				//Check Right most bit should shift into adjacent chunk
+				if (*(lightfield + dx + (16 * (dy + 0))) & 0b1)
+				{
+					if (auto neighbourChunk = reinterpret_cast<ChunkSpace*>(parent)->getChunk(chunkCoords.x, chunkCoords.y, chunkCoords.z - 1); !field and neighbourChunk)
+					{
+						*(neighbourChunk->lightfield + dx + (16 * (dy))) |= 0b1000000000000000;
+						auto blockPtr = (neighbourChunk->chunkData + 15 + (16 * dy) + (256 * dx));
+						blockPtr->lightLevel = currLightLevel > blockPtr->lightLevel ? currLightLevel : blockPtr->lightLevel;
+						neighbourToUpdate[4] = neighbourChunk;
+					}
+				}
+
+				//Check Left most bit should shift into adjacent chunk
+				if (*(lightfield + dx + (16 * (dy + 0))) & 0b1000000000000000)
+				{
+					if (auto neighbourChunk = reinterpret_cast<ChunkSpace*>(parent)->getChunk(chunkCoords.x, chunkCoords.y, chunkCoords.z - 1); !field and neighbourChunk)
+					{
+						*(neighbourChunk->lightfield + dx + (16 * (dy))) |= 0b1;
+						auto blockPtr = (neighbourChunk->chunkData + 0 + (16 * dy) + (256 * dx));
+						blockPtr->lightLevel = currLightLevel > blockPtr->lightLevel ? currLightLevel : blockPtr->lightLevel;
+						neighbourToUpdate[5] = neighbourChunk;
+					}
+				}
+				*(lightfield + dx + (16 * (dy + 0))) |= *(lightfield + dx + (16 * (dy + 0))) >> 1;
+				*(lightfield + dx + (16 * (dy + 0))) |= *(lightfield + dx + (16 * (dy + 0))) << 1;
+
+			}
+		}
+		//Reduce the light level
+		currLightLevel -= 1;
+		//std::cout << "LightLevelDone:Line 1042\n";
+	}
+
+	//std::cout << "StartLightIndices:Line 1045\n";
+	
+	lightingIndices.clear();
+	lightingIndices.reserve(CHUNKSIZE* CHUNKSIZE* CHUNKSIZE * 6);
+	
+	for (int x = 0; x < CHUNKSIZE; x++)
+	{
+		for (int y = 0; y < CHUNKSIZE; y++)
+		{
+			for (int z = 0; z < CHUNKSIZE; z++)
+			{
+				// -- LIGHTING -- //
+				//X-Positive
+				if ((axis_col[(x + 0) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) //If X-1 (X+0 since xyz starts -1,-1,-1) block is solid
+				{
+					lightingIndices.push_back(0); //Surface us covered in solid so it has no light
+				}
+				else
+				{
+					/*auto a = getBlock(x - 1, y, z).lightLevel;
+					if (a > 5)
+					{
+						std::cout << "A!";
+					}*/
+
+					lightingIndices.push_back(getBlock(x - 1, y, z).lightLevel);
+				}
+
+				//X-Negative
+				if ((axis_col[(x + 2) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) //If X+1 (X+2 since xyz starts -1,-1,-1) block is solid
+				{
+					lightingIndices.push_back(0); //Surface us covered in solid so it has no light
+				}
+				else
+				{
+					lightingIndices.push_back(getBlock(x + 1, y, z).lightLevel);
+				}
+
+				//Z-Positive
+				if ((axis_col[(x + 1) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 0)) >> (z + 0)) //If X+1 (X+2 since xyz starts -1,-1,-1) block is solid
+				{
+					lightingIndices.push_back(0); //Surface us covered in solid so it has no light
+				}
+				else
+				{
+					lightingIndices.push_back(getBlock(x, y, z - 1).lightLevel);
+				}
+
+				//Z-Negative
+				if ((axis_col[(x + 1) + ((y + 1) * 18) + chunk_size_p2].data & 0b1 << (z + 2)) >> (z + 2)) //If X+1 (X+2 since xyz starts -1,-1,-1) block is solid
+				{
+					lightingIndices.push_back(0); //Surface us covered in solid so it has no light
+				}
+				else
+				{
+					lightingIndices.push_back(getBlock(x, y, z + 1).lightLevel);
+				}
+
+				//Y-Positive
+				if ((axis_col[(x + 1) + ((y + 0) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) //If X+1 (X+2 since xyz starts -1,-1,-1) block is solid
+				{
+					lightingIndices.push_back(0); //Surface us covered in solid so it has no light
+				}
+				else
+				{
+					lightingIndices.push_back(getBlock(x, y - 1, z).lightLevel);
+				}
+
+				//Y-Negative
+				if ((axis_col[(x + 1) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) //If X+1 (X+2 since xyz starts -1,-1,-1) block is solid
+				{
+					lightingIndices.push_back(0); //Surface us covered in solid so it has no light
+				}
+				else
+				{
+					lightingIndices.push_back(getBlock(x, y + 1, z).lightLevel);
+				}
+			}
+		}
+	}
+	
+	//std::cout << "MarkingNeighbours:Line 1126\n";
+	try
+	{
+		
+		for (int neighbour = 0; neighbour < neighbourToUpdate.size();neighbour++) //Mark neighbours to update
+		{
+			if ((neighbourToUpdate.at(neighbour)))
+			{
+				if (neighbourToUpdate[neighbour]) reinterpret_cast<chunk*>(neighbourToUpdate[neighbour])->alertUpdateLight();
+			}
+			
+			
+		}
+		
+		
+	}
+	catch (std::exception e)
+	{
+		std::cout << "Error Marking Neighbours"<<std::endl;
+	}
+	//neighbourToUpdate.clear();
+	
+	//Cleanup arrays before leaving scope
+	
+	delete[] oldLightfield;
+	delete[] overlapMap;
+	lightDispatchCompleted = true;
+	
+	return lightingIndices;
+}
+
+
+
 
 
 
@@ -696,6 +1212,43 @@ void chunk::tick()
 		updateGeom(false); //Update this chunk but we no longer want to update neghbouring chunks
 		neighbourUpdated = false;
 	}
+	if (lightDispatchCompleted)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightIndexSSBO);
+
+
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, lightingIndices.size() * sizeof(uint32), &lightingIndices[0]); //Try put data from std::future int
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+		if (lightCalcThread.joinable())
+		{
+			std::cout << "Join:1222\n";
+			lightDispatchCompleted = false;
+			lightCalcThread.join();
+			
+		}
+		
+		
+		updateChunkLighting();
+		
+	}
+	if (lightUpdated) //Lightfield has been updated by neighbour
+	{
+		if (lightCalcThread.joinable())
+		{
+			std::cout << "Join:1235\n";
+			lightCalcThread.join();
+			
+		}
+		
+		
+		updateChunkLighting(lightfield);
+	}
+	
+
 	transform = static_cast<ChunkSpace*>(parent)->transform;
 	transform = glm::translate(transform, glm::vec3((float)chunkCoords.x * 16.f, (float)chunkCoords.y * 16.f, (float)chunkCoords.z * 16.f));
 }
@@ -731,6 +1284,7 @@ void chunk::render(camera& currentCamera)
 
 	
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightIndexSSBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindVertexArray(chunkVAO); //Now bind openGL to the correct vertex array
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size()); // Draw a triangle (starting at index 0 and increasing to 6 verts)
@@ -769,14 +1323,15 @@ unsigned int chunk::prepareRender()
 
 	
 	
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, texIndexSSBO);
+	
 
 	//Find Exact amount of voxel textures we need to store in SSBO
 	uint32 totalTextures = knownTextures.size()*6; //One texture per face
 	
-	glDeleteBuffers(1, &texIndexSSBO);
-	glGenBuffers(1, &texIndexSSBO);
+	//glDeleteBuffers(1, &texIndexSSBO);
+	//glGenBuffers(1, &texIndexSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, texIndexSSBO);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * CHUNKSIZE * CHUNKSIZE * CHUNKSIZE * 12, nullptr, GL_DYNAMIC_DRAW);
 	
 
@@ -790,20 +1345,26 @@ unsigned int chunk::prepareRender()
 			{
 				if (getBlock(x, y, z).solid == false)
 				{
+					//Texture Indices
 					textureIndices.push_back(uint32(-1)); //For now just push back texture -1 to clear pixels
 					textureIndices.push_back(uint32(-1));
 					textureIndices.push_back(uint32(-1));
 					textureIndices.push_back(uint32(-1));
 					textureIndices.push_back(uint32(-1));
 					textureIndices.push_back(uint32(-1));
+					//Ambient Occlusion
 					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
 					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
 					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
 					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
 					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
 					textureIndices.push_back(uint32(0)); //Ambient Occlusion Value (per voxel)
+					
 					continue;
 				}
+
+				// -- TEXTURES -- //
+
 				auto search = std::find(knownTextures.begin(), knownTextures.end(), getBlock(x, y, z).id);
 				auto index = std::distance(knownTextures.begin(), search);
 				textureIndices.push_back(uint32((index * 6) + 0)); //For now just push back texture 0, eventually will use lookup to map position to blocks
@@ -812,6 +1373,9 @@ unsigned int chunk::prepareRender()
 				textureIndices.push_back(uint32((index * 6) + 3));
 				textureIndices.push_back(uint32((index * 6) + 4));
 				textureIndices.push_back(uint32((index * 6) + 5));
+
+				// -- AMBIENT OCCLUSION -- //
+
 				//Start finding occluded blocks
 				unsigned int BlockSurrounding = 0;
 				uint32 s = 0;
@@ -937,19 +1501,28 @@ unsigned int chunk::prepareRender()
 				BlockSurrounding |= ((axis_col[(x + 0) + ((y + 2) * 18) + chunk_size_p2].data & 0b1 << (z + 1)) >> (z + 1)) << 11; // Left Block
 				textureIndices.push_back(BlockSurrounding); //Ambient Occlusion Value
 				
+				
+				
 			}
 		}
 	}
-
+	
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, textureIndices.size() * sizeof(uint32), &textureIndices[0]);
-
+	
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
 	//Unbind buffer
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 	
-
-
+	//Lighting SSBO
+	/*glDeleteBuffers(1, &lightIndexSSBO);
+	glGenBuffers(1, &lightIndexSSBO);
+	*/
+	
+	
+	
+	
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 	// the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind Array buffer

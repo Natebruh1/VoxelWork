@@ -44,6 +44,7 @@ glm::mat4 view = glm::mat4(1.0f);
 node* currentScene;
 
 chunk* testChunk;
+chunk* chunkThree;
 ChunkSpace* cSpace;
 
 int main()
@@ -101,7 +102,7 @@ int main()
 	nlohmann::json data;
 	cSpace->serialize(data,true);
 	cSpace->saveToDisc();
-	
+	data.clear();
 	
 	//Definite Deletes
 	delete currentCamera;
@@ -168,15 +169,19 @@ void processInput(GLFWwindow* window)
 		if (blockPlaced)
 		{
 			testChunk->deleteBlock(0, 0, 0);
+			testChunk->updateChunkLighting();
+			
 			blockPlaced = false;
 		}
 		else
 		{
 			testChunk->setBlock(0, 0, 0, 3);
+			
 			blockPlaced = true;
 		}
 		keyPressed = true;
 	}
+
 	if (keyPressed && glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
 	{
 		keyPressed = false;
@@ -199,10 +204,7 @@ void Update()
 	bool chunkMade = false;
 	testChunk = new chunk();
 	testChunk->createFullChunk();
-
-	//Window Title Stringstream (Credit : https://stackoverflow.com/questions/18412120/displaying-fps-in-glfw-window-title)
-	std::stringstream title;
-	float titleUpdateTime=0.f;
+	
 
 	for (int x = 0; x < 5; x++)
 	{
@@ -218,16 +220,17 @@ void Update()
 		}
 	}
 	
-	testChunk->deleteBlock(3, 0, 0);
-	testChunk->deleteBlock(3, 0, 1);
-	testChunk->deleteBlock(0, 0, 3);
-	testChunk->deleteBlock(1, 0, 3);
-	testChunk->deleteBlock(0, 1, 0);
-	testChunk->setBlock(2, 0, 0, 2);
-	testChunk->setBlock(0, 0, 0, 2);
-	testChunk->setBlock(1, 0, 3, 2);
-	testChunk->deleteBlock(5, 1, 0);
-	testChunk->deleteBlock(0, 1, 5);
+	testChunk->deleteBlock	(3, 0, 0);
+	testChunk->deleteBlock	(3, 0, 1);
+	testChunk->deleteBlock	(0, 0, 3);
+	testChunk->deleteBlock	(1, 0, 3);
+	testChunk->deleteBlock	(0, 1, 0);
+	testChunk->setBlock		(2, 0, 0, 2);
+	testChunk->setBlock		(0, 0, 0, 2);
+	testChunk->setBlock		(1, 0, 3, 2);
+	testChunk->deleteBlock	(5, 1, 0);
+	testChunk->deleteBlock	(0, 1, 5);
+	testChunk->deleteBlock	(0, 1, 6);
 
 	// ---Add objects to scene---
 	currentScene->addChild(*currentCamera);
@@ -237,6 +240,11 @@ void Update()
 
 	//Generate Chunk from ChunkSpace
 	cSpace->addChunk(0,0,0,*testChunk);
+
+	chunkThree = new chunk();
+	chunkThree->createFullChunk();
+
+	
 	chunk* testChunk2 = cSpace->addChunk(0, 1, 0); //Add chunk by default to chunkSpace
 	testChunk2->createFullChunk();
 
@@ -244,7 +252,13 @@ void Update()
 	//Set an externally loaded voxel
 	testChunk2->setBlock(0, 0, 0, 4);
 	
-	
+	cSpace->addChunk(0, 0, -1, *chunkThree);
+	chunkThree->deleteBlock(0, 0, 15);
+
+	//Window Title Stringstream (Credit : https://stackoverflow.com/questions/18412120/displaying-fps-in-glfw-window-title)
+	std::stringstream title;
+	float titleUpdateTime = 0.f;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		//PROCESS
@@ -370,6 +384,7 @@ void Events()
 void Tick()
 {
 	//Update the current scene
+	node* a=currentScene;
 	currentScene->tick();
 
 }

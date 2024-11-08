@@ -5,6 +5,7 @@ class node3D :
 {
 public:
     virtual void tick() override;
+    virtual ~node3D() override;
     glm::mat4 transform = glm::mat4(1.f);
     glm::vec3& getPosition() { return position;};
 protected:

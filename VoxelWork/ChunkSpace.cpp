@@ -1,5 +1,12 @@
 #include "ChunkSpace.h"
 #include "camera.h"
+ChunkSpace::~ChunkSpace()
+{
+    chunks.clear();
+    saveData.clear();
+    std::cout << "Join:00000\n";
+    
+}
 chunk* ChunkSpace::addChunk(int x, int y, int z)
 {
     chunk* retChunk;

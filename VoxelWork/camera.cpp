@@ -18,6 +18,11 @@ camera::camera()
 		glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
+camera::~camera()
+{
+	node::~node();
+}
+
 void camera::tick()
 {
 	node::tick();

@@ -13,6 +13,8 @@ class ChunkSpace :
     public node3D
 {
 public:
+    virtual ~ChunkSpace() override;
+public:
     chunk* addChunk(int x, int y, int z);
     chunk* addChunk(int x, int y, int z, chunk& chunkToAdd);
     chunk* getChunk(int x, int y, int z);

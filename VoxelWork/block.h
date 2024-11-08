@@ -6,8 +6,11 @@ struct block
 {	// Block should be 80 bytes ~ 327kb per chunk.
 
 	//Right now id is 15 bits but you can increase the total bit usage if not going over 4 byte alignment
+	//Block
 	unsigned int id : 31; //Block-ID
 	unsigned int solid : 1;
+
+	unsigned int lightLevel : 4=0; //0-15
 	
 };
 

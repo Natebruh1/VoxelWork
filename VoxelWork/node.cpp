@@ -3,14 +3,20 @@
 //#include "camera.h";
 node::node()
 {
+
 }
 
 node::~node()
 {
-	for (auto& child : children)
+	
+	for (int i = 0;i<children.size();i++)
 	{
-		delete child;
+		if (children[0] != nullptr)
+		{
+			delete children[0];
+		}
 	}
+	children.clear();
 	if (parent != nullptr)
 	{
 		parent->removeChild(*this);

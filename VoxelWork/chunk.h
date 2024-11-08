@@ -6,16 +6,21 @@
 
 #include <stdint.h>
 
+//STD
 #include <bit>
 #include <map>
 #include <vector>
 #include <optional>
 #include <iterator>
+//(Threading)
+#include <thread>
+#include <future>
 
 #include <iostream>
 
 //Saving/Serializing
 #include "json.hpp"
+
 
 
 class ChunkSpace;
@@ -85,6 +90,10 @@ struct vertexData
     
 };
 
+struct lightDirections //Wrapper Object to pass by value
+{
+    glm::ivec3 directions[6];
+};
 class chunk :
     public node3D
 {
@@ -100,6 +109,11 @@ public:
     std::vector<greedyQuad> greedyMeshBinaryPlane(std::map<int, std::vector<uint16>>& inDat);
     std::vector<greedyQuad> greedyMeshBinaryPlane(std::vector<uint16>& inDat);
     void greedyMeshChunk();
+
+    void updateChunkLighting(uint16* field=nullptr);
+    std::vector<uint32> floodBlockLighting(glm::ivec3 voxelPos, unsigned int lightStrength, uint16* field=nullptr);
+    void alertUpdateLight() { lightUpdated = true; }; //Let Chunk know that its light needs to be updated
+
     //Block Editors
     inline block& getBlock(int x, int y, int z);
     void setBlock(uint32 x, uint32 y, uint32 z, uint32 id);
@@ -117,7 +131,7 @@ public:
     //Disk-Managment
     std::vector<uint32>* serialize(nlohmann::json& data);
     // Con/Decon
-    ~chunk();
+    virtual ~chunk() override;
     chunk();
 
     //chunkCoord setter
@@ -140,6 +154,7 @@ public:
     }
 private: 
     bool geomUpdated = false; //If true then during the next tick we recreate chunk geometry
+    bool lightUpdated = false;
     bool neighbourUpdated = false;
     // Data
     block* chunkData; //Defines the chunk as created by blocks. Includes extraneous data.
@@ -153,13 +168,26 @@ private:
     //std::map<int, std::vector<std::vector<uint16>>> data;
     std::vector<vertexData> vertices;
 
+    //GL Data
     unsigned int chunkVAO;
     unsigned int VBO;
     unsigned int texIndexSSBO;
+    unsigned int lightIndexSSBO;
+
+    
+    //Lighting
+    std::vector<uint32> lightingIndices;
+    std::mutex lightMutex;
+    bool lightDispatchCompleted = false;
+    std::thread lightCalcThread;
+    uint16* lightfield;
+
     //Texturing
     std::vector<uint32> textureIndices;                 //Contains and index per block that maps to a texture
     static std::vector<uint16>knownTextures;            //std::vector of BlockID's, the idea is to reduce redundancy
     static SparseBindlessTextureArray ChunkTextures;    //These are both static to save memory
+
+
 
     //Chunk Coords
     glm::ivec3 chunkCoords = glm::ivec3(0, 0, 0);

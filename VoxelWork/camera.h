@@ -5,7 +5,10 @@ class camera :
 {
 public:
     camera();
+    virtual ~camera() override;
     virtual void tick() override;
+
+
     void processInput(GLFWwindow* const& windowRef,float dt);
     glm::mat4 cameraView;
 

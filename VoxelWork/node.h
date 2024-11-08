@@ -22,6 +22,7 @@ public:
 protected:
 	bool visible = true;
 	std::vector<node*> children;
+	
 	node* parent=nullptr;
 
 	

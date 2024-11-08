@@ -6,6 +6,9 @@
 layout(std430, binding = 0) buffer TextureIndices {
     uint textureIndices[];
 };
+layout(std430, binding = 1) buffer lightingIndices {
+    uint lightIndices[];
+};
 
 
 uniform uint64_t textureHandle; //Bindless Texture Handle
@@ -46,6 +49,12 @@ void main()
 
 
     int AOIndex=texIndex+6+ax;
+    float AOPower=1.2;//1.
+
+    //Get Light Power
+    int lightLevelIndex=((xCoord*256+yCoord*16+zCoord)*6)+ax;
+    uint LightLevel=lightIndices[lightLevelIndex];
+    AOPower=AOPower/LightLevel;
 
     //AMBIENT OCCLUSION
 
@@ -58,12 +67,64 @@ void main()
 
     //Ambient Occlusion
     float ambientValue=(1.0-texCoord.x)*(1.0-texCoord.y)*float(bottomLeft)+texCoord.x*(1.0-texCoord.y)*float(bottomRight)+texCoord.x*texCoord.y*float(topRight)+(1.0-texCoord.x)*texCoord.y*float(topLeft);
-    float AOPower=0.3;//0.3
+    
     FragColor=FragColor*(1.0-(ambientValue)*AOPower);
     
     
     
-
+    switch (int(LightLevel))
+    {
+    case 0:
+        FragColor = 0.2*FragColor;
+        break;
+    case 1:
+        FragColor = 0.23*FragColor;
+        break;
+    case 2:
+        FragColor = 0.26*FragColor;
+        break;
+    case 3:
+        FragColor = 0.35*FragColor;
+        break;
+    case 4:
+        FragColor = 0.50*FragColor;
+        break;
+    case 5:
+        FragColor = 0.65*FragColor;
+        break;
+    case 6:
+        FragColor = 0.8*FragColor;
+        break;
+    case 7:
+        FragColor = 0.95*FragColor;
+        break;
+    case 8:
+        FragColor = 1.0*FragColor;
+        break;
+    case 9:
+        FragColor = 1.0*FragColor;
+        break;
+    case 10:
+        FragColor = 1.0*FragColor;
+        break;
+    case 11:
+        FragColor = 1.0*FragColor;
+        break;
+    case 12:
+        FragColor = 1.1*FragColor;
+        break;
+    case 13:
+        FragColor = 1.2*FragColor;
+        break;
+    case 14:
+        FragColor = 1.2*FragColor;
+        break;
+    case 15:
+        FragColor = 1.2*FragColor;
+        break;
+    }
+    
+    
 
     //FragColor = texture(textureArray,vec3(vec2(texCoord),float(textureIndices[texIndex])));
     
