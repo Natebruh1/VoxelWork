@@ -7,13 +7,14 @@
 #include "ResourceManager.h"
 #include "camera.h";
 
-#include "ChunkSpace.h"
+#include "LightManager.h"
+#include "WorldSpace.h"
 #include "chunk.h"
 #include "globals.h"
 
 // Meta-Game Consts
 const std::string GAMENAME = "Voxel Test";
-const std::string VERSION = "0.0.2";
+const std::string VERSION = "0.0.3";
 
 //
 
@@ -45,7 +46,7 @@ node* currentScene;
 
 chunk* testChunk;
 chunk* chunkThree;
-ChunkSpace* cSpace;
+WorldSpace* wSpace;
 
 int main()
 {
@@ -86,7 +87,7 @@ int main()
 	ResourceManager::LoadShader("tri.vs", "tri.ps", nullptr, "triangle");
 	
 	//Add a new chunkSpace
-	cSpace = new ChunkSpace();
+	wSpace = new WorldSpace();
 
 	//Create a new scene
 	currentScene = new node();
@@ -100,8 +101,8 @@ int main()
 
 	//Save remaining chunks
 	nlohmann::json data;
-	cSpace->serialize(data,true);
-	cSpace->saveToDisc();
+	wSpace->serialize(data,true);
+	wSpace->saveToDisc();
 	data.clear();
 	
 	//Definite Deletes
@@ -169,8 +170,10 @@ void processInput(GLFWwindow* window)
 		if (blockPlaced)
 		{
 			testChunk->deleteBlock(0, 0, 0);
-			testChunk->updateChunkLighting();
-			
+			//testChunk->updateChunkLighting();
+			wSpace->getLightsManager()->setLightUpdated(0);
+
+
 			blockPlaced = false;
 		}
 		else
@@ -236,24 +239,30 @@ void Update()
 	currentScene->addChild(*currentCamera);
 
 	//Add test chunk as a child
-	currentScene->addChild(*cSpace);
+	currentScene->addChild(*wSpace);
 
 	//Generate Chunk from ChunkSpace
-	cSpace->addChunk(0,0,0,*testChunk);
-
-	chunkThree = new chunk();
-	chunkThree->createFullChunk();
+	wSpace->addChunk(0,0,0,*testChunk);
 
 	
-	chunk* testChunk2 = cSpace->addChunk(0, 1, 0); //Add chunk by default to chunkSpace
+
+	
+	chunk* testChunk2 = wSpace->addChunk(0, 1, 0); //Add chunk by default to chunkSpace
 	testChunk2->createFullChunk();
 
 
 	//Set an externally loaded voxel
 	testChunk2->setBlock(0, 0, 0, 4);
 	
-	cSpace->addChunk(0, 0, -1, *chunkThree);
-	chunkThree->deleteBlock(0, 0, 15);
+
+
+	//Generate using noise chunks
+	wSpace->generate(0, 0, -1);
+	wSpace->generate(0, -1, 0);
+	wSpace->generate(0, 1, -1);
+	wSpace->generate(0, -1, -1);
+	
+	//wSpace->generate(0, 0, -2);
 
 	//Window Title Stringstream (Credit : https://stackoverflow.com/questions/18412120/displaying-fps-in-glfw-window-title)
 	std::stringstream title;

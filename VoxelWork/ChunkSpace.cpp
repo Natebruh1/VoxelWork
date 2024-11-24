@@ -1,10 +1,32 @@
 #include "ChunkSpace.h"
 #include "camera.h"
+#include "LightManager.h"
+ChunkSpace::ChunkSpace()
+{
+    if (withLight)
+    {
+        lightsManager = new LightManager();
+        lightsManager->setWorldSpace(this);
+    }
+    
+}
+void ChunkSpace::tick()
+{
+    if (withLight)
+    {
+        lightsManager->tick();
+    }
+    node::tick();
+    if (withLight)
+    {
+        lightsManager->lightTick();
+    }
+}
 ChunkSpace::~ChunkSpace()
 {
     chunks.clear();
     saveData.clear();
-    std::cout << "Join:00000\n";
+   // std::cout << "Join:00000\n";
     
 }
 chunk* ChunkSpace::addChunk(int x, int y, int z)

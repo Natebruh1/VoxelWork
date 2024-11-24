@@ -21,6 +21,10 @@ in vec2 texCoords;
 flat in int ax;
 void main()
 {
+    float lightFlag=0.0;
+    float lightVal=1.0;
+
+
     
     sampler2DArray textureArray = sampler2DArray(textureHandle);
     int xCoord=int(floor(voxCoords.x));
@@ -54,7 +58,7 @@ void main()
     //Get Light Power
     int lightLevelIndex=((xCoord*256+yCoord*16+zCoord)*6)+ax;
     uint LightLevel=lightIndices[lightLevelIndex];
-    AOPower=AOPower/LightLevel;
+    AOPower=((AOPower*lightFlag)/(LightLevel))+(0.3*(1.0-lightFlag));
 
     //AMBIENT OCCLUSION
 
@@ -71,60 +75,61 @@ void main()
     FragColor=FragColor*(1.0-(ambientValue)*AOPower);
     
     
-    
     switch (int(LightLevel))
     {
     case 0:
-        FragColor = 0.2*FragColor;
+        lightVal = 0.2;
         break;
     case 1:
-        FragColor = 0.23*FragColor;
+        lightVal =  0.23;
         break;
     case 2:
-        FragColor = 0.26*FragColor;
+        lightVal = 0.26;
         break;
     case 3:
-        FragColor = 0.35*FragColor;
+        lightVal = 0.3;
         break;
     case 4:
-        FragColor = 0.50*FragColor;
+        lightVal = 0.5;
         break;
     case 5:
-        FragColor = 0.65*FragColor;
+        lightVal = 0.6;
         break;
     case 6:
-        FragColor = 0.8*FragColor;
+        lightVal = 0.8;
         break;
     case 7:
-        FragColor = 0.95*FragColor;
+        lightVal = 0.9;
         break;
     case 8:
-        FragColor = 1.0*FragColor;
+        lightVal = 1.0;
         break;
     case 9:
-        FragColor = 1.0*FragColor;
+        lightVal = 1.0;
         break;
     case 10:
-        FragColor = 1.0*FragColor;
+        lightVal = 1.0;
         break;
     case 11:
-        FragColor = 1.0*FragColor;
+        lightVal = 1.0;
         break;
     case 12:
-        FragColor = 1.1*FragColor;
+        lightVal = 1.1;
         break;
     case 13:
-        FragColor = 1.2*FragColor;
+        lightVal = 1.2;
         break;
     case 14:
-        FragColor = 1.2*FragColor;
+        lightVal = 1.2;
         break;
     case 15:
-        FragColor = 1.2*FragColor;
+        lightVal = 1.2;
         break;
     }
     
-    
+    lightVal=lightVal*lightFlag + (1.0-lightFlag);
+    FragColor=FragColor*lightVal;
+    //FragColor=vec4(AOPower,AOPower,1.0,1.0);
 
     //FragColor = texture(textureArray,vec3(vec2(texCoord),float(textureIndices[texIndex])));
     

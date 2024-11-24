@@ -1,5 +1,6 @@
-#include "node.h"
+#include "node.h";
 #include "camera.h";
+#include "LightManager.h";
 //#include "camera.h";
 node::node()
 {

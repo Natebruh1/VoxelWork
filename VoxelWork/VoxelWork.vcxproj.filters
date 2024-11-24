@@ -28,6 +28,9 @@
     <Filter Include="Other Libraries">
       <UniqueIdentifier>{5ea8e508-250e-48ff-b291-75c92c148cb2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Noise">
+      <UniqueIdentifier>{b3ca2df5-55b9-4d5c-9893-81cbc51e1bf0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -64,6 +67,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ChunkSpace.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldSpace.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -117,6 +126,15 @@
       <Filter>Other Libraries</Filter>
     </ClInclude>
     <ClInclude Include="ChunkSpace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FastNoiseLite.h">
+      <Filter>Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldSpace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

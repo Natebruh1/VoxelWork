@@ -22,8 +22,9 @@
 #include "json.hpp"
 
 
-
-class ChunkSpace;
+class LightManager;
+struct light;
+class ChunkSpace;   
 using uint16 = uint16_t;
 using uint32 = uint32_t;
 struct chunk_padded {
@@ -90,10 +91,7 @@ struct vertexData
     
 };
 
-struct lightDirections //Wrapper Object to pass by value
-{
-    glm::ivec3 directions[6];
-};
+
 class chunk :
     public node3D
 {
@@ -112,12 +110,15 @@ public:
 
     void updateChunkLighting(uint16* field=nullptr);
     std::vector<uint32> floodBlockLighting(glm::ivec3 voxelPos, unsigned int lightStrength, uint16* field=nullptr);
+    void fastBlockFloodLighting(light& currLight);
     void alertUpdateLight() { lightUpdated = true; }; //Let Chunk know that its light needs to be updated
 
     //Block Editors
     inline block& getBlock(int x, int y, int z);
+    inline block* getBlockAddr(int x, int y, int z);
     void setBlock(uint32 x, uint32 y, uint32 z, uint32 id);
     void neighbourUpdate() {neighbourUpdated = true;};
+    void rebuildChunk() { geomUpdated = true; };
     //Utility
     int trailingZeros(const uint16& intRef);
     int trailingOnes(const uint16& intRef);
@@ -152,6 +153,8 @@ public:
     {
         return rhs;
     }
+    
+    block* getData() { return chunkData; };
 private: 
     bool geomUpdated = false; //If true then during the next tick we recreate chunk geometry
     bool lightUpdated = false;
@@ -181,6 +184,7 @@ private:
     bool lightDispatchCompleted = false;
     std::thread lightCalcThread;
     uint16* lightfield;
+    std::vector<light> lights; //Lights that updated this chunk this frame
 
     //Texturing
     std::vector<uint32> textureIndices;                 //Contains and index per block that maps to a texture

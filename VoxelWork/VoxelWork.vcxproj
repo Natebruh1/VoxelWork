@@ -140,6 +140,7 @@
     <ClCompile Include="chunk.cpp" />
     <ClCompile Include="ChunkSpace.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="node.cpp" />
     <ClCompile Include="node3D.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
@@ -147,6 +148,7 @@
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="SparseBindlessTextureArray.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="WorldSpace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -165,8 +167,10 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="chunk.h" />
     <ClInclude Include="ChunkSpace.h" />
+    <ClInclude Include="FastNoiseLite.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="LightManager.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="node3D.h" />
     <ClInclude Include="ResourceManager.h" />
@@ -174,6 +178,7 @@
     <ClInclude Include="SparseBindlessTextureArray.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="WorldSpace.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

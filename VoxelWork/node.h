@@ -9,6 +9,7 @@
 //Temp
 #include<iostream>
 class camera;
+class LightManager;
 class node
 {
 public:
