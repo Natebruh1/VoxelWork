@@ -27,7 +27,7 @@ private:
     glm::vec3 cameraFront;
     
     //Camera Movespeed
-    float speed = 2.5f;
+    float speed = 4.5f;
 
     //For looking around
     float yaw=0.f;

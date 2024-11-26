@@ -101,8 +101,8 @@ int main()
 
 	//Save remaining chunks
 	nlohmann::json data;
-	wSpace->serialize(data,true);
-	wSpace->saveToDisc();
+	//wSpace->serialize(data,true); //LAG CAUSERS
+	//wSpace->saveToDisc(); //AND THIS
 	data.clear();
 	
 	//Definite Deletes
@@ -157,7 +157,11 @@ bool keyPressed = false;
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
 		glfwSetWindowShouldClose(window, true);
+		std::cout << "EXITING" << std::endl;
+	}
+		
 
 	//--TEMP--
 	// Camera Input
@@ -257,11 +261,16 @@ void Update()
 
 
 	//Generate using noise chunks
-	wSpace->generate(0, 0, -1);
-	wSpace->generate(0, -1, 0);
-	wSpace->generate(0, 1, -1);
-	wSpace->generate(0, -1, -1);
-	
+	/*for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < 5; j++)
+		{
+			for (int k = 0; k < 5; k++)
+			{
+				wSpace->generate(glm::ivec3( - i - 1, 1 - j, -k - 1));
+			}
+		}
+	}*/
 	//wSpace->generate(0, 0, -2);
 
 	//Window Title Stringstream (Credit : https://stackoverflow.com/questions/18412120/displaying-fps-in-glfw-window-title)
@@ -295,6 +304,18 @@ void Update()
 		
 		//Tick
 		Tick();
+		glm::ivec3 chunkCoord = (currentCamera->getPosition())/16.f;
+		chunkCoord.y -= 1;
+		for (int x = -1; x < 2; x++)
+		{
+			for (int y = -1; y < 0; y++)
+			{
+				for (int z = -1; z < 2; z++)
+				{
+					wSpace->generate(chunkCoord+glm::ivec3(x,y,z));
+				}
+			}
+		}
 		
 		
 		
@@ -319,6 +340,7 @@ void Update()
 		
 		
 	}
+	std::cout << "UPDATING FINISHED" << std::endl;
 }
 
 
