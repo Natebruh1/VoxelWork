@@ -26,13 +26,32 @@ std::vector<uint32>* chunk::serialize(nlohmann::json& data)
 	//BlockData
 	
 	ids.reserve(4096);
+	uint32_t currentRun;
+	uint32_t currentLength=1;
 	for (int x = 0; x < 16; x++)
 	{
 		for (int y = 0; y < 16; y++)
 		{
 			for (int z = 0; z < 16; z++)
 			{
-				ids.push_back((uint32)(chunkData + (z)+(16 * y) + (256 * x))->id);
+				if (x == 0 && y == 0 && z == 0)
+				{
+					//Start the first run
+					currentRun = (uint32)(chunkData + (z)+(16 * y) + (256 * x))->id;
+					
+				}
+				if (currentRun != (uint32)(chunkData + (z)+(16 * y) + (256 * x))->id)
+				{
+					//We've changed block, push to IDS
+					ids.push_back(currentRun);
+					ids.push_back(currentLength);
+
+					currentLength = 0;//Reset the length of the run
+					currentRun = (uint32)(chunkData + (z)+(16 * y) + (256 * x))->id;
+				}
+
+				currentLength++;
+				
 			}
 		}
 	}
@@ -1650,42 +1669,49 @@ void chunk::tick()
 void chunk::render(camera& currentCamera)
 {
 	node::render(currentCamera);
+	if (vertices.size() == 0)
+	{
+		//Don't render
+	}
+	else
+	{
+		ResourceManager::GetShader("triangle")->Use(); //Select and use (via glUseProgram) the correct shader.
 
-	ResourceManager::GetShader("triangle")->Use(); //Select and use (via glUseProgram) the correct shader.
 
+		glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 100.0f);
+		glm::mat4 view = currentCamera.cameraView;
+
+
+
+		//Make the texture resident
+		ChunkTextures.makeResident();
+
+
+		//Transform the trans matrix (model matrix)
+
+
+		// --Bind Uniforms--
+		// In this case our triangle only has 3 Uniforms, and they are all matrices.
+		(*ResourceManager::GetShader("triangle")).SetMatrix4("transform", transform);
+		(*ResourceManager::GetShader("triangle")).SetMatrix4("view", view);
+		(*ResourceManager::GetShader("triangle")).SetMatrix4("projection", proj);
+		(*ResourceManager::GetShader("triangle")).SetBindlessTextureHandle("textureHandle", ChunkTextures.getBindlessHandle());
+
+
+		//Bind Buffers and draw call
+
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightIndexSSBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindVertexArray(chunkVAO); //Now bind openGL to the correct vertex array
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size()); // Draw a triangle (starting at index 0 and increasing to 6 verts)
+		if (auto err = glGetError(); err != GL_NO_ERROR) std::cerr << "OpenGL error: " << std::hex << err << std::endl; //Clean error detection line (limited info given however)
+		glBindVertexArray(0); //Unbind
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	}
 	
-	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 100.0f);
-	glm::mat4 view = currentCamera.cameraView;
-
-
-
-	//Make the texture resident
-	ChunkTextures.makeResident();
-	
-
-	//Transform the trans matrix (model matrix)
-	
-
-	// --Bind Uniforms--
-	// In this case our triangle only has 3 Uniforms, and they are all matrices.
-	(*ResourceManager::GetShader("triangle")).SetMatrix4("transform", transform);
-	(*ResourceManager::GetShader("triangle")).SetMatrix4("view", view);
-	(*ResourceManager::GetShader("triangle")).SetMatrix4("projection", proj);
-	(*ResourceManager::GetShader("triangle")).SetBindlessTextureHandle("textureHandle", ChunkTextures.getBindlessHandle());
-	
-
-	//Bind Buffers and draw call
-
-	
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, texIndexSSBO);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightIndexSSBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBindVertexArray(chunkVAO); //Now bind openGL to the correct vertex array
-	glDrawArrays(GL_TRIANGLES, 0, vertices.size()); // Draw a triangle (starting at index 0 and increasing to 6 verts)
-	if (auto err = glGetError(); err != GL_NO_ERROR) std::cerr << "OpenGL error: " << std::hex << err << std::endl; //Clean error detection line (limited info given however)
-	glBindVertexArray(0); //Unbind
-	glBindBuffer(GL_ARRAY_BUFFER,0);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 unsigned int chunk::prepareRender()

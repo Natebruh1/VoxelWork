@@ -37,7 +37,7 @@ void Render();
 void Events();
 unsigned int& genTestTriangle();
 
-glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 100.0f);
+glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 30000.0f);
 camera* currentCamera;
 glm::mat4 view = glm::mat4(1.0f);
 
@@ -101,8 +101,8 @@ int main()
 
 	//Save remaining chunks
 	nlohmann::json data;
-	//wSpace->serialize(data,true); //LAG CAUSERS
-	//wSpace->saveToDisc(); //AND THIS
+	wSpace->serialize(data,true); //LAG CAUSERS
+	wSpace->saveToDisc(); //AND THIS
 	data.clear();
 	
 	//Definite Deletes
@@ -305,12 +305,12 @@ void Update()
 		//Tick
 		Tick();
 		glm::ivec3 chunkCoord = (currentCamera->getPosition())/16.f;
-		chunkCoord.y -= 1;
-		for (int x = -1; x < 2; x++)
+		//chunkCoord.y -= 1;
+		for (int x = -2; x < 3; x++)
 		{
-			for (int y = -1; y < 0; y++)
+			for (int y = -2; y < 0; y++)
 			{
-				for (int z = -1; z < 2; z++)
+				for (int z = -2; z < 3; z++)
 				{
 					wSpace->generate(chunkCoord+glm::ivec3(x,y,z));
 				}

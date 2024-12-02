@@ -23,7 +23,9 @@ public:
 private:
     //Height
     FastNoiseLite heightNoise;
-    const float worldHeight = 24.f;
+    FastNoiseLite carver1; //Chamber Caverns
+    FastNoiseLite carver2;
+    const float worldHeight = 48.f;
 
 
     std::vector<glm::ivec3> knownChunks;
@@ -38,7 +40,7 @@ private:
     std::mutex chunkListLock;
     std::vector<bool> haveWork;
     std::vector<bool> workerRunning;
-
+    
     std::thread t[NumWorkers];
 
     std::vector<glm::ivec3> chunkMarkedGenerate;

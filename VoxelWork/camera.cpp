@@ -52,6 +52,12 @@ void camera::processInput(GLFWwindow* const& windowRef,float dt)
 		position += cameraUp * cameraSpeed*2.f; //Go up faster
 	if (glfwGetKey(windowRef, GLFW_KEY_E) == GLFW_PRESS)
 		position -= cameraUp * cameraSpeed * 2.f; //Go up faster
+
+	if (glfwGetKey(windowRef, GLFW_KEY_L) == GLFW_PRESS)
+		speed += dt * 5.f;
+	if (glfwGetKey(windowRef, GLFW_KEY_K) == GLFW_PRESS)
+		speed -= dt * 5.f;
+
 }
 
 void camera::RotateView(float x, float y)

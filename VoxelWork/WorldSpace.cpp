@@ -80,6 +80,7 @@ void WorldSpace::threadLoop(uint16 thread)
 				workReady[thread].wait(lock);
 			}
 		}
+		
 		//Do the work (gen Chunk)
 		if (workerRunning[thread]) //Because the worker could stop running whilst we are waiting for the thread to get work
 		{
@@ -104,10 +105,30 @@ WorldSpace::WorldSpace()
 {
 	withLight = false; //We don't want light
 	heightNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-	heightNoise.SetSeed(12);
+	heightNoise.SetSeed(20);
+	carver1.SetSeed(20);
+
+	carver1.SetFrequency(0.03);
+	carver2.SetFrequency(0.01);
+
+	rules.push_back(		// -- SPAG CAVERNS -- //
+		[=](int x, int y, int z) {
+			auto sqnoise = (carver2.GetNoise((float)x, (float)y, (float)z)) * (carver2.GetNoise((float)x, (float)y, (float)z));
+			return sqnoise<0.0005;
+		}
+	);
+	blockPalette.push_back(0); //Air
+
+	rules.push_back(		// -- CHAMBER CAVERNS -- //
+		[=](int x, int y, int z) {
+			return (carver1.GetNoise((float)x, (float)y, (float)z) > 0.55);
+		}
+	);
+	blockPalette.push_back(0); //Air
+
 	rules.push_back
 	(
-		[=](int x, int y, int z) {
+		[=](int x, int y, int z) {		// -- WORLD HEIGHT -- //
 			return (heightNoise.GetNoise((float)x, (float)z) * worldHeight) > y;
 		}
 	);
@@ -217,7 +238,10 @@ void WorldSpace::tick()
 		std::unique_lock<std::mutex> lock(mutex[i]); //Wait for work to finish
 		if (haveWork[i])
 		{
+			
 			workReady[i].wait(lock);
+			
+			
 		}
 	}
 	chunkMarkedGenerate.clear();
