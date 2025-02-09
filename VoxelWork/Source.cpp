@@ -101,8 +101,11 @@ int main()
 
 	//Save remaining chunks
 	nlohmann::json data;
-	wSpace->serialize(data,true); //LAG CAUSERS
-	wSpace->saveToDisc(); //AND THIS
+
+	//wSpace->loadFromDisc();
+	wSpace->serialize(data,true);	//LAG CAUSERS -- Serialize all loaded chunks and then save, currently about 100kb per 70 chunks ~ for 12^3 chunks that is about 2mb without zipping
+									// or without accounting for the fact that a lot of chunks are pure air
+	wSpace->saveToDisc();			//AND THIS
 	data.clear();
 	
 	//Definite Deletes
@@ -158,8 +161,12 @@ void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
+		
 		glfwSetWindowShouldClose(window, true);
 		std::cout << "EXITING" << std::endl;
+		
+
+		
 	}
 		
 
@@ -276,7 +283,7 @@ void Update()
 	//Window Title Stringstream (Credit : https://stackoverflow.com/questions/18412120/displaying-fps-in-glfw-window-title)
 	std::stringstream title;
 	float titleUpdateTime = 0.f;
-
+	bool loadCHunk = true;
 	while (!glfwWindowShouldClose(window))
 	{
 		//PROCESS
@@ -338,7 +345,8 @@ void Update()
 		//Call Events and Swap Buffers
 		glfwSwapBuffers(window);
 		
-		
+		//Update loaded regions (for saving/loading from file)
+		//wSpace->updateLoadedRegions(currentCamera->getPosition(),8);
 	}
 	std::cout << "UPDATING FINISHED" << std::endl;
 }

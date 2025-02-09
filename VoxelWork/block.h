@@ -10,7 +10,7 @@ struct block
 	unsigned int id : 31; //Block-ID
 	unsigned int solid : 1;
 
-	unsigned int lightLevel : 6=0; //0-15
-	
+	unsigned int lightLevel : 6 = 0; //0-15
+
 };
 

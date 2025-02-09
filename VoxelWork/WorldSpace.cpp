@@ -9,6 +9,11 @@ void WorldSpace::generate(glm::ivec3 coords)
 		chunkMarkedGenerate.push_back(coords);
 		knownChunks.push_back(coords);
 	}
+	else
+	{
+		//Load Chunk
+		//if (std::find())
+	}
 	
 }
 
@@ -25,6 +30,8 @@ void WorldSpace::generate(int x, int y, int z)
 	//Chunk unknown, generate
 
 	chunk* newChunk = getChunk(x, y, z);
+	newChunk->setEdited(true);
+	
 
 	//Generate chunk
 	int worldX = x * 16;

@@ -20,7 +20,7 @@ chunk::chunk()
 	
 }
 
-std::vector<uint32>* chunk::serialize(nlohmann::json& data)
+std::vector<uint32>* chunk::serialize()
 {
 	
 	//BlockData
@@ -118,6 +118,19 @@ void chunk::setBlock(uint32 x, uint32 y, uint32 z, uint32 id)
 	blockRef.id = id;
 	blockRef.solid = blockLibrary.BlockDefaultSolid[blockLibrary[id]] ? 0b1 : 0b0; //Check if the block defaults to solid
 	geomUpdated = true;
+	edited = true;
+}
+
+void chunk::setBlockArray(uint32 id, uint32 length, uint32 offset)
+{
+	if (!this) return;
+	unsigned int solid = blockLibrary.BlockDefaultSolid[blockLibrary[id]];
+	block copyBlock={id,solid};
+	
+	for (uint32 i = 0; i < length; i++)
+	{
+		memcpy(chunkData + offset+i, &copyBlock, sizeof(block));
+	}
 }
 
 inline block& chunk::getBlock(int x, int y, int z)
@@ -1628,11 +1641,13 @@ void chunk::tick()
 
 		updateGeom();
 		neighbourUpdated = false; //If we've been marked already by a neighbour to update then we no longer need to
+		
 	}
 	if (neighbourUpdated)
 	{
 		updateGeom(false); //Update this chunk but we no longer want to update neghbouring chunks
 		neighbourUpdated = false;
+		
 	}
 	if (lightDispatchCompleted)
 	{
@@ -1678,7 +1693,7 @@ void chunk::render(camera& currentCamera)
 		ResourceManager::GetShader("triangle")->Use(); //Select and use (via glUseProgram) the correct shader.
 
 
-		glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 100.0f);
+		glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 450.0f);
 		glm::mat4 view = currentCamera.cameraView;
 
 

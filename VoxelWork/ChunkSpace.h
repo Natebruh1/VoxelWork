@@ -2,11 +2,13 @@
 #include "node3D.h"
 #include "chunk.h"
 #include "json.hpp"
+#include "filesystem"
 //Needed to hold chunks
 #include <map>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cstdio>
 
 class LightManager;
 
@@ -24,13 +26,18 @@ public:
     virtual void render(camera& currentCamera) override;
     void serialize(nlohmann::json& data, bool store=false);
     void saveToDisc();
-
+    void loadFromDisc();
+    void updateLoadedRegions(glm::vec3 worldPos, int renderDistance=16);
     LightManager* getLightsManager() { return lightsManager;};
 private:
     std::map<int, std::map<int, std::map<int, chunk*>>> chunks;
     nlohmann::json saveData;
     LightManager* lightsManager;
+
+    
 protected:
     bool withLight = true;
+    std::vector<glm::ivec3>loadedRegions;
+    std::vector<nlohmann::json> loadedRegionsData;
 };
 

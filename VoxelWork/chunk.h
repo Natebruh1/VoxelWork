@@ -117,6 +117,7 @@ public:
     inline block& getBlock(int x, int y, int z);
     inline block* getBlockAddr(int x, int y, int z);
     void setBlock(uint32 x, uint32 y, uint32 z, uint32 id);
+    void setBlockArray(uint32 id, uint32 length, uint32 offset);
     void neighbourUpdate() {neighbourUpdated = true;};
     void rebuildChunk() { geomUpdated = true; };
     //Utility
@@ -130,7 +131,7 @@ public:
     virtual void render(camera& currentCamera) override;
 
     //Disk-Managment
-    std::vector<uint32>* serialize(nlohmann::json& data);
+    std::vector<uint32>* serialize();
     // Con/Decon
     virtual ~chunk() override;
     chunk();
@@ -155,6 +156,9 @@ public:
     }
     
     block* getData() { return chunkData; };
+
+    bool getEdited() { return edited; };
+    void setEdited(bool val) { edited = val; };
 private: 
     bool geomUpdated = false; //If true then during the next tick we recreate chunk geometry
     bool lightUpdated = false;
@@ -199,5 +203,6 @@ private:
 
     //Serializing
     std::vector<uint32>ids;
+    bool edited = false;
 };
 
