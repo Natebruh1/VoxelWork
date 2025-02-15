@@ -29,15 +29,22 @@ public:
     void loadFromDisc();
     void updateLoadedRegions(glm::vec3 worldPos, int renderDistance=16);
     LightManager* getLightsManager() { return lightsManager;};
+
+
+   
 private:
-    std::map<int, std::map<int, std::map<int, chunk*>>> chunks;
+    
     nlohmann::json saveData;
-    LightManager* lightsManager;
+    
 
     
 protected:
+    std::map<int, std::map<int, std::map<int, chunk*>>> chunks;
     bool withLight = true;
     std::vector<glm::ivec3>loadedRegions;
     std::vector<nlohmann::json> loadedRegionsData;
+
+
+    LightManager* lightsManager;
 };
 

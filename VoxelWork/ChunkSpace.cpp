@@ -8,7 +8,7 @@ ChunkSpace::ChunkSpace()
         lightsManager = new LightManager();
         lightsManager->setWorldSpace(this);
     }
-    
+    //transform = glm::scale(transform, glm::vec3(0.5f, 0.1f, 0.5f));
 }
 void ChunkSpace::tick()
 {
@@ -120,13 +120,16 @@ chunk* ChunkSpace::addChunk(int x, int y, int z, chunk& chunkToAdd)
 
 chunk* ChunkSpace::getChunk(int x, int y, int z)
 {
-    if (auto searchX = chunks.find(x); searchX != chunks.end())
+    if (chunks.size() > 0)
     {
-        if (auto searchY = chunks[x].find(y); searchY != chunks[x].end())
+        if (auto searchX = chunks.find(x); searchX != chunks.end())
         {
-            if (auto searchZ = chunks[x][y].find(z); searchZ != chunks[x][y].end())
+            if (auto searchY = chunks[x].find(y); searchY != chunks[x].end())
             {
-                return chunks[x][y][z];
+                if (auto searchZ = chunks[x][y].find(z); searchZ != chunks[x][y].end())
+                {
+                    return chunks[x][y][z];
+                }
             }
         }
     }

@@ -9,8 +9,18 @@
 
 #include "LightManager.h"
 #include "WorldSpace.h"
+#include "PartSpace.h"
 #include "chunk.h"
 #include "globals.h"
+
+
+
+// LUA Scripting
+#include "LuaCPP/LuaCpp.hpp"
+using namespace LuaCpp;
+using namespace LuaCpp::Registry;
+using namespace LuaCpp::Engine;
+
 
 // Meta-Game Consts
 const std::string GAMENAME = "Voxel Test";
@@ -47,6 +57,9 @@ node* currentScene;
 chunk* testChunk;
 chunk* chunkThree;
 WorldSpace* wSpace;
+PartSpace* testPart;
+node3D* testModel;
+node3D* testModel2;
 
 int main()
 {
@@ -94,6 +107,11 @@ int main()
 
 	// Create a new camera
 	currentCamera = new camera();
+
+
+	
+
+
 	// --Loop--
 	Update();
 	
@@ -266,6 +284,19 @@ void Update()
 	testChunk2->setBlock(0, 0, 0, 4);
 	
 
+	//Test Model Parts
+	testPart = new PartSpace();
+	testPart->RegisterToLibrary("Part", "NOFILE");
+	testModel = new node3D();
+	testModel->transform = glm::scale(testModel->transform, glm::vec3(1.f, 4.5f, 1.f));
+	testModel2 = new node3D();
+	testModel2->transform = glm::scale(testModel2->transform, glm::vec3(1.f/16.f, 1.f/16.f, 1.f/16.f));
+	//testModel2->transform = glm::rotate(testModel2->transform, 0.8f, glm::vec3(1.f, 1.f, 0.f));
+	//testModel->transform = glm::translate(testModel->transform,glm::vec3(0.f,8.f,0.f));
+	PartSpace::SetBlock("Part", 0, 0, 0, 0);
+	PartSpace::SetBlock("Part", 1, 0, 0, 4);
+	PartSpace::SetBlock("Part", 0, 1, 0, 4);
+	PartSpace::SetBlock("Part", 0, 0, 1, 4);
 
 	//Generate using noise chunks
 	/*for (int i = 0; i < 5; i++)
@@ -427,9 +458,14 @@ void Tick()
 	currentScene->tick();
 
 }
+glm::mat4 t = glm::mat4(1.f);
 
 void Render()
 {
-	currentScene->render(*currentCamera);
+	
+	t = glm::rotate(t, 0.3f*deltaTime, glm::vec3(0.f, 1.f, 0.f));
+	//currentScene->render(*currentCamera);
+	PartSpace::RenderPart("Part", *testModel, *currentCamera);
+	PartSpace::RenderPartTransformed("Part", *testModel2,t, *currentCamera);
 }
 

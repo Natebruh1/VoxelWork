@@ -118,6 +118,23 @@ WorldSpace::WorldSpace()
 	carver1.SetFrequency(0.03);
 	carver2.SetFrequency(0.01);
 
+	
+	ctx.AddGlobalVariable("world", num);
+
+	ctx.CompileString("test", "world = world+1");
+
+	/*
+	rules.push_back(		// -- LUA TEST -- //
+		[=](int x, int y, int z) {
+			ctx.Run("test");
+			return (((int)num->getValue()) % 2)>0;
+		}
+	);
+
+	blockPalette.push_back(4); //Not air
+	*/
+
+
 	rules.push_back(		// -- SPAG CAVERNS -- //
 		[=](int x, int y, int z) {
 			auto sqnoise = (carver2.GetNoise((float)x, (float)y, (float)z)) * (carver2.GetNoise((float)x, (float)y, (float)z));
