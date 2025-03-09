@@ -1,5 +1,9 @@
 #pragma once
 #include "ChunkSpace.h"
+
+struct chunkLoadTracker { int x = 0; int y = 0; int z = 0; };
+
+
 class PartSpace :
     public ChunkSpace
 {

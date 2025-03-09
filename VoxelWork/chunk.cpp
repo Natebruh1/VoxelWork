@@ -131,6 +131,7 @@ void chunk::setBlockArray(uint32 id, uint32 length, uint32 offset)
 	{
 		memcpy(chunkData + offset+i, &copyBlock, sizeof(block));
 	}
+	geomUpdated = true;
 }
 
 inline block& chunk::getBlock(int x, int y, int z)
@@ -274,6 +275,7 @@ void chunk::updateGeom(bool withNeighbour)
 					if (std::find(knownTextures.begin(), knownTextures.end(), getBlock(x, y, z).id) == knownTextures.end()) //If we haven't yet found this ID then add it
 					{
 						if (getBlock(x, y, z).solid == false) goto checkSolid; //No Texture support for unsolid blocks //Use a goto here since we need to check this but can't skip this array
+						int ide = getBlock(x, y, z).id;
 						knownTextures.push_back(getBlock(x, y, z).id);
 						std::string blockName = blockLibrary.idBlockLookup[getBlock(x, y, z).id]; // Get the blockname
 

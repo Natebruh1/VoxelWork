@@ -189,6 +189,7 @@
     <ClCompile Include="LuaCPP\Registry\LuaCompiler.cpp" />
     <ClCompile Include="LuaCPP\Registry\LuaLibrary.cpp" />
     <ClCompile Include="LuaCPP\Registry\LuaRegistry.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="node.cpp" />
     <ClCompile Include="node3D.cpp" />
     <ClCompile Include="PartSpace.cpp" />
@@ -265,6 +266,7 @@
     <ClInclude Include="LuaCPP\Registry\LuaCompiler.hpp" />
     <ClInclude Include="LuaCPP\Registry\LuaLibrary.hpp" />
     <ClInclude Include="LuaCPP\Registry\LuaRegistry.hpp" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="node3D.h" />
     <ClInclude Include="PartSpace.h" />

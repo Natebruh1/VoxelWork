@@ -10,6 +10,7 @@
 #include "LightManager.h"
 #include "WorldSpace.h"
 #include "PartSpace.h"
+#include "Model.h"
 #include "chunk.h"
 #include "globals.h"
 
@@ -220,7 +221,7 @@ void processInput(GLFWwindow* window)
 	}
 }
 
-
+Model testModelModel;
 void Update()
 {
 	
@@ -286,17 +287,20 @@ void Update()
 
 	//Test Model Parts
 	testPart = new PartSpace();
-	testPart->RegisterToLibrary("Part", "NOFILE");
+	testPart->RegisterToLibrary("Part", "parts/terrainPart.txt");
 	testModel = new node3D();
 	testModel->transform = glm::scale(testModel->transform, glm::vec3(1.f, 4.5f, 1.f));
 	testModel2 = new node3D();
 	testModel2->transform = glm::scale(testModel2->transform, glm::vec3(1.f/16.f, 1.f/16.f, 1.f/16.f));
+
+	
+	
 	//testModel2->transform = glm::rotate(testModel2->transform, 0.8f, glm::vec3(1.f, 1.f, 0.f));
 	//testModel->transform = glm::translate(testModel->transform,glm::vec3(0.f,8.f,0.f));
-	PartSpace::SetBlock("Part", 0, 0, 0, 0);
-	PartSpace::SetBlock("Part", 1, 0, 0, 4);
-	PartSpace::SetBlock("Part", 0, 1, 0, 4);
-	PartSpace::SetBlock("Part", 0, 0, 1, 4);
+	//PartSpace::SetBlock("Part", 0, 0, 0, 0);
+	//PartSpace::SetBlock("Part", 1, 0, 0, 4);
+	//PartSpace::SetBlock("Part", 0, 1, 0, 4);
+	//PartSpace::SetBlock("Part", 0, 0, 1, 4);
 
 	//Generate using noise chunks
 	/*for (int i = 0; i < 5; i++)
@@ -465,7 +469,8 @@ void Render()
 	
 	t = glm::rotate(t, 0.3f*deltaTime, glm::vec3(0.f, 1.f, 0.f));
 	//currentScene->render(*currentCamera);
-	PartSpace::RenderPart("Part", *testModel, *currentCamera);
-	PartSpace::RenderPartTransformed("Part", *testModel2,t, *currentCamera);
+	testModelModel.render(*currentCamera);
+	//PartSpace::RenderPart("Part", *testModel, *currentCamera);
+	//PartSpace::RenderPartTransformed("Part", *testModel2,t, *currentCamera);
 }
 
