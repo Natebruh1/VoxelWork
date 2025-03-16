@@ -43,6 +43,8 @@ public:
 	virtual node& addChild(node& newChild);
 	virtual node& removeChild(node& childToRemove);
 	void setVisible(bool newVis) { visible = newVis; };
+
+	static float deltaTime;
 protected:
 	bool visible = true;
 	std::vector<node*> children;

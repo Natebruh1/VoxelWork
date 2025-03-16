@@ -116,7 +116,7 @@ void PartSpace::RenderPartTransformed(std::string partName, node3D& Owner, glm::
 
 		for (auto& child : requestedPart->children)
 		{
-			static_cast<node3D*>(child)->transform =requestedPart->transform * Owner.transform * transform;
+			static_cast<node3D*>(child)->transform = transform * Owner.transform * requestedPart->transform;
 		}
 		requestedPart->render(currentCamera);
 	}

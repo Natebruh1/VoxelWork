@@ -2,6 +2,8 @@
 #include "camera.h";
 #include "LightManager.h";
 //#include "camera.h";
+float node::deltaTime = 0.f;
+
 node::node()
 {
 

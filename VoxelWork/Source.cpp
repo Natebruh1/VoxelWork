@@ -458,9 +458,9 @@ void Events()
 void Tick()
 {
 	//Update the current scene
-	node* a=currentScene;
+	currentScene->deltaTime = deltaTime;
 	currentScene->tick();
-
+	testModelModel.tick();
 }
 glm::mat4 t = glm::mat4(1.f);
 
