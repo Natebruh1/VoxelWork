@@ -53,6 +53,7 @@ public:
         virtual void update(float deltaTime) = 0;
         virtual bool isFinished() const = 0;
         virtual ~AnimationBase() {};
+        
     };
 
     template <typename propType>
@@ -64,10 +65,17 @@ public:
         propType endValue;
         float duration;
         float elapsed = 0.0f;
+        bool withRelative = false;
         //Animation Constructor
         Animation(std::function<void(const propType&)> set, std::function<propType()> get,
-            propType start, propType end, float dur)
-            : setter(set), getter(get), startValue(start), endValue(end), duration(dur) {}
+            propType start, propType end, float dur,bool withR)
+            : setter(set), getter(get), startValue(start), endValue(end), duration(dur),withRelative(withR)
+        {
+            if (withR)
+            {
+                endValue = startValue + endValue;
+            }
+        }
 
         void update(float deltaTime) override
         {
@@ -97,7 +105,7 @@ public:
     std::unordered_map<std::string, std::vector<std::unique_ptr<AnimationBase>>> animations;
 
     template <typename propType>
-    void addAnimation(std::string animName, propType& trackedProperty, propType finalVal, float animationLength)
+    void addAnimation(std::string animName, propType& trackedProperty, propType finalVal, float animationLength, bool withRelative=false)
     {
         
 
@@ -108,7 +116,8 @@ public:
             }, // Setter function
             [&trackedProperty]() -> propType //Lambda return type notation
             { return trackedProperty; }, // Getter function
-            trackedProperty, finalVal, animationLength
+            trackedProperty, finalVal, animationLength,
+            withRelative
         ));
     }
 

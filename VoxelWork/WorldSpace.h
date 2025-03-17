@@ -26,6 +26,7 @@ public:
     WorldSpace();
     ~WorldSpace();
     virtual void tick() override;
+    
 private:
     //Height
     FastNoiseLite heightNoise;

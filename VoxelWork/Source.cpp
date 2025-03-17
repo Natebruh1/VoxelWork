@@ -176,6 +176,7 @@ float lastFrame = 0.f; // Time of last frame
 
 bool blockPlaced = true;
 bool keyPressed = false;
+Model testModelModel;
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -221,7 +222,7 @@ void processInput(GLFWwindow* window)
     }
 }
 
-Model testModelModel;
+
 void Update()
 {
 
@@ -296,8 +297,7 @@ void Update()
     testModel2 = new node3D();
     testModel2->transform = glm::scale(testModel2->transform, glm::vec3(1.f / 16.f, 1.f / 16.f, 1.f / 16.f));
 
-
-
+    
     //testModel2->transform = glm::rotate(testModel2->transform, 0.8f, glm::vec3(1.f, 1.f, 0.f));
     //testModel->transform = glm::translate(testModel->transform,glm::vec3(0.f,8.f,0.f));
     //PartSpace::SetBlock("Part", 0, 0, 0, 0);

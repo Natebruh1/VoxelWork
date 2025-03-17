@@ -194,6 +194,8 @@ WorldSpace::WorldSpace()
 		workerRunning.push_back(true);
 		t[i] = std::thread(&WorldSpace::threadLoop, this, i);
 	}
+
+	
 }
 
 WorldSpace::~WorldSpace()
