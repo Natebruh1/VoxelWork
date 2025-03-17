@@ -69,12 +69,12 @@ public:
         //Animation Constructor
         Animation(std::function<void(const propType&)> set, std::function<propType()> get,
             propType start, propType end, float dur,bool withR)
-            : setter(set), getter(get), startValue(start), endValue(end), duration(dur),withRelative(withR)
+            : setter(set), getter(get), startValue(start), endValue(end + (withR ? start : propType{})), duration(dur), withRelative(withR)
         {
-            if (withR)
+            /*if (withR)
             {
                 endValue = startValue + endValue;
-            }
+            }*/
         }
 
         void update(float deltaTime) override
