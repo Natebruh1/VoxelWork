@@ -142,6 +142,6 @@ public:
     }
 
 private:
-    std::vector<std::unique_ptr<AnimationBase>> activeAnimations;
+    std::vector<std::unique_ptr<AnimationBase>> activeAnimations; //Unique pointer to underived type
 };
 

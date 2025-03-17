@@ -8,21 +8,35 @@ void Model::render(camera& currentCamera)
 
 Model::Model()
 {
-	root.attachedPart = "Part";
-	ModelNode* chld = new ModelNode;
-	chld->attachedPart = "Part";
-	root.children.push_back(chld);
+    root.attachedPart = "SpiderHead";
+    ModelNode* chld = new ModelNode;
+    chld->attachedPart = "SpiderLeg";
+    root.children.push_back(chld);
 
-	//Transform for spider Lef
-	//chld->localAttachment.transform = glm::translate(chld->localAttachment.transform, glm::vec3(0.f, 0.f, 4.f));
-	//chld->localAttachment.transform = glm::rotate(chld->localAttachment.transform,	(float)std::numbers::pi*2.f/3.f, glm::vec3(1.f, 0.f, 0.f));
-	chld->localAttachment.setPosition(glm::vec3(0.f, 0.f, 4.f));
-	chld->localAttachment.setRotation(glm::vec3(120.f, 0.f, 0.f));
-	addAnimation<glm::vec3>("RotateRoot", root.localAttachment.getRotation(), glm::vec3(-60.f, 0.f, 0.f), 5.f);
-	
-	addAnimation<glm::vec3>("Rotate", chld->localAttachment.getRotation(), glm::vec3(140.f, 0.f, 0.f), 5.f);
-	playAnimation("Rotate");
-	playAnimation("RotateRoot");
+    ModelNode* legAttachment = new ModelNode;
+    legAttachment->attachedPart = "SpiderLeg";
+
+    chld->children.push_back(legAttachment);
+
+    //Transform for spider Lef
+    //chld->localAttachment.transform = glm::translate(chld->localAttachment.transform, glm::vec3(0.f, 0.f, 4.f));
+    //chld->localAttachment.transform = glm::rotate(chld->localAttachment.transform,    (float)std::numbers::pi*2.f/3.f, glm::vec3(1.f, 0.f, 0.f));
+
+    //Transform Model
+    root.localAttachment.setPosition(glm::vec3(0.f, 0.f, -8.f));
+
+    //Transform legs
+
+    chld->localAttachment.setPosition(glm::vec3(2.f, 0.f, 4.f));
+    chld->localAttachment.setRotation(glm::vec3(0.f, 15.f, 0.f));
+
+    legAttachment->localAttachment.setPosition(glm::vec3(0.f, 0.f, 4.f));
+    legAttachment->localAttachment.setRotation(glm::vec3(60.f, 0.f, 0.f));
+    addAnimation<glm::vec3>("RotateLegRoot", chld->localAttachment.getRotation(), glm::vec3(-60.f, chld->localAttachment.getRotation().y, 0.f), 5.f);
+
+    addAnimation<glm::vec3>("RotateLegAttachment", legAttachment->localAttachment.getRotation(), glm::vec3(140.f, 0.f, 0.f), 7.f);
+    playAnimation("RotateLegRoot");
+    playAnimation("RotateLegAttachment");
 }
 
 void Model::tick()

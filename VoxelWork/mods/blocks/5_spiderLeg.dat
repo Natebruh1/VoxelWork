@@ -1,0 +1,13 @@
+{
+	"Name":"SpiderLeg",
+	"Solid":true,
+	"Textures":
+	{
+		"0":"textures/spiderLegSideRotated.png",
+		"1":"textures/spiderLegSideRotated.png",
+		"2":"textures/spiderLegEnd.png",
+		"3":"textures/spiderLegEnd.png",
+		"4":"textures/spiderLegSide.png",
+		"5":"textures/spiderLegSide.png"
+	}
+}

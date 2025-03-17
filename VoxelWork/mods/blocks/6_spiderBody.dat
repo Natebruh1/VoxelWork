@@ -1,0 +1,13 @@
+{
+	"Name":"SpiderBody",
+	"Solid":true,
+	"Textures":
+	{
+		"0":"textures/SpiderBody.png",
+		"1":"textures/SpiderBody.png",
+		"2":"textures/SpiderBody.png",
+		"3":"textures/SpiderBody.png",
+		"4":"textures/SpiderBody.png",
+		"5":"textures/SpiderBody.png"
+	}
+}
