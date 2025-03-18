@@ -13,7 +13,7 @@
 #include "Model.h"
 #include "chunk.h"
 #include "globals.h"
-
+ModelLibrary modelLibrary;
 
 
 // LUA Scripting

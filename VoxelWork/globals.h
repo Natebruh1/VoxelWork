@@ -1,5 +1,6 @@
 #pragma once
 #include "BlockLibrary.h";
+#include "ModelLibrary.h"
 #include "json.hpp"
 
 #include <vector>

@@ -1,0 +1,42 @@
+{
+  "name":"Spider",
+  "Root":
+  {
+    "Parts":
+    {
+      "SpiderHead":
+      {
+        "Position":[0.0,0.0,0.0],
+        "Rotation":[0.0,0.0,0.0],
+        "Scale":[0.0,0.0,0.0],
+        "Animations":
+        {
+          "MoveForward":
+          {
+            "Length":5.0,
+            "Position":[0.0,0.0,15.0],
+            "Relative":true
+          },
+          "MoveBackward":
+          {
+            "Length":5.0,
+            "Position":[0.0,0.0,-15.0],
+            "Relative":true
+          }
+        },
+        "Children":
+        {
+          "SpiderLeg":
+          {
+            "Position":[4.0,0.0,0.0],
+            "Rotation":[0.0,0.0,0.0],
+            "Scale":[0.0,0.0,0.0],
+            "Animations":{},
+            "Children":{}
+          }
+        
+        }
+      }
+    }
+  }
+}
