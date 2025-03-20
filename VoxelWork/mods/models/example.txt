@@ -1,0 +1,9 @@
+GOTO https://www.objgen.com/json/
+Paste the following and save the json as Spider.dat
+name = Spider
+root
+  Parts 
+    Position[] n= 0.0,0.0,0.0
+    Rotation[] n= 0.0,0.0,0.0
+    Scale[] n= 0.0,0.0,0.0
+    

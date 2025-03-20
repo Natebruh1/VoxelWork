@@ -4,10 +4,12 @@ void Model::render(camera& currentCamera)
 {
 	
 	root.render(currentCamera, transform);
+    
 }
 
 Model::Model()
 {
+    
     root.attachedPart = "SpiderHead";
     for (int i = 0; i < 4; i++)
     {
@@ -81,7 +83,7 @@ Model::Model()
 
     }
     
-    
+    attachScript("scripts/test_script.lua");
 }
 
 void Model::tick()
@@ -92,6 +94,70 @@ void Model::tick()
 	
 	//std::cout << deltaTime << "\n";
 	update(deltaTime);
+}
+
+void Model::RegisterFunctions()
+{
+    //Create metatable for Model FIRST
+    if (luaL_newmetatable(L, "ModelMeta")) {  // Ensure it's only created once
+        // Set __index to itself
+        lua_pushstring(L, "__index");
+        lua_pushvalue(L, -2); // Push ModelMeta itself
+        lua_settable(L, -3);
+
+        //Register PlayAnimation method
+        lua_pushcfunction(L, lua_PlayAnimation);
+        lua_setfield(L, -2, "PlayAnimation");
+
+        //Register AddAnimation method
+        lua_pushcfunction(L, lua_AddAnimation);
+        lua_setfield(L, -2, "AddAnimation");
+
+        //Register Move method
+        lua_pushcfunction(L, lua_Move);
+        lua_setfield(L, -2, "Move");
+
+        //Register Set Interpolation Method
+        lua_pushcfunction(L, lua_SetAnimationInterpolation);
+        lua_setfield(L, -2, "SetAnimationInterpolation");
+    }
+
+
+    lua_pop(L, 1); // Pop ModelMeta from stack
+
+    //Now push Model as a userdata and set its metatable
+    Model** ptr = static_cast<Model**>(lua_newuserdata(L, sizeof(Model*)));
+    *ptr = this;
+    
+    luaL_getmetatable(L, "ModelMeta"); // Now it exists!
+    lua_setmetatable(L, -2);
+    
+    lua_setglobal(L, "Model"); // Store Model in Lua
+    
+    //Create Node table
+    lua_newtable(L);
+    
+    // Push the same instance as an upvalue for `Node`
+    node** nodePtr = static_cast<node**>(lua_newuserdata(L, sizeof(node*)));
+    *nodePtr = this; // `Model` derives from `node`
+    
+    //Bind `lua_tick` with the upvalue
+    lua_pushcclosure(L, lua_tick, 1);
+    lua_setfield(L, -2, "tick");
+    
+    lua_setglobal(L, "Node"); // Set table as global "Node"
+
+}
+
+void Model::CreateLuaModelInstance(lua_State* L)
+{
+    Model** userdata = static_cast<Model**>(lua_newuserdata(L, sizeof(Model*)));
+    *userdata = this;
+
+    luaL_getmetatable(L, "ModelMeta");
+    lua_setmetatable(L, -2);
+
+    lua_setglobal(L, "Model");  // Now Lua can access `Model`
 }
 
 

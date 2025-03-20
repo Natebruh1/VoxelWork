@@ -6,7 +6,7 @@ float node::deltaTime = 0.f;
 
 node::node()
 {
-
+	
 }
 
 node::~node()
@@ -36,6 +36,21 @@ void node::tick()
 		}
 
 	}
+
+	//Script Tick
+	if (tickFunctionRef != LUA_NOREF) //If the script function refeerence is set
+	{
+		//Push Function onto stack
+		lua_rawgeti(L, LUA_REGISTRYINDEX, tickFunctionRef);
+		//Push Deltatime as argument
+		lua_pushnumber(L, deltaTime);
+
+		if (lua_pcall(L, 1, 0, 0) != LUA_OK) //Current State on stack, 1 argument, 0 results
+		{
+			std::cerr << "Error in Lua tick function: " << lua_tostring(L, -1) << std::endl;
+			lua_pop(L, 1);
+		}
+	}
 }
 
 void node::render(camera& currentCamera)
@@ -49,6 +64,9 @@ void node::render(camera& currentCamera)
 		}
 		
 	}
+
+	
+
 }
 
 node& node::addChild(node& newChild)
@@ -75,4 +93,39 @@ node& node::removeChild(node& childToRemove)
 		children.erase(search); //Erase via the iterator
 	}
 	return childToRemove;
+}
+
+void node::attachScript(std::string attachedScript)
+{
+	L = luaL_newstate(); //Set the lua state
+	luaL_openlibs(L); //Open standard lua libraries
+	
+	RegisterFunctions();
+	runLuaScript(L, attachedScript);
+	scriptIsAttached = true;
+}
+
+void node::RegisterFunctions()
+{
+	lua_newtable(L); //Create Node table
+
+	//Push userdata (node* instance) as an upvalue
+	node** ptr = static_cast<node**>(lua_newuserdata(L, sizeof(node*)));
+	*ptr = this;
+
+	lua_pushcclosure(L, lua_tick, 1); //Bind `lua_tick` with this object as an upvalue
+	lua_setfield(L, -2, "tick");
+
+	lua_setglobal(L, "Node"); //Set table as global "Node"
+}
+
+
+
+void node::runLuaScript(lua_State* L, std::string script)
+{
+	if (luaL_dofile(L, script.c_str()) != LUA_OK)
+	{
+		std::cerr << "Lua Error: " << lua_tostring(L, -1) << std::endl;
+		lua_pop(L, 1);
+	}
 }

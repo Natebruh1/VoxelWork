@@ -112,7 +112,7 @@ WorldSpace::WorldSpace()
 {
 	withLight = false; //We don't want light
 	heightNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-	heightNoise.SetSeed(20);
+	heightNoise.SetSeed(20);	
 	carver1.SetSeed(20);
 
 	carver1.SetFrequency(0.03);

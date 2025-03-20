@@ -234,12 +234,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="tri.ps">
-      <Filter>Shaders\Pixel</Filter>
-    </None>
-    <None Include="tri.vs">
-      <Filter>Shaders\Vertex</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -437,5 +431,13 @@
     <ClInclude Include="ModelLibrary.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="tri.ps">
+      <Filter>Shaders\Pixel</Filter>
+    </Text>
+    <Text Include="tri.vs">
+      <Filter>Shaders\Vertex</Filter>
+    </Text>
   </ItemGroup>
 </Project>
