@@ -24,7 +24,7 @@ public:
     chunk* addChunk(int x, int y, int z, chunk& chunkToAdd);
     chunk* getChunk(int x, int y, int z);
     virtual void render(camera& currentCamera) override;
-    void serialize(nlohmann::json& data, bool store=false);
+    virtual void serialize(nlohmann::json& data, bool store=false);
     void saveToDisc();
     void loadFromDisc();
     void updateLoadedRegions(glm::vec3 worldPos, int renderDistance=16);

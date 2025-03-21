@@ -1,7 +1,9 @@
 #include "WorldSpace.h"
 #include "camera.h"
 #include "LightManager.h"
-
+#include "ModelLibrary.h"
+#include "Model.h"
+WorldSpace* WorldSpace::CurrentWorld = nullptr;
 void WorldSpace::generate(glm::ivec3 coords)
 {
 	if (std::find(knownChunks.begin(), knownChunks.end(), coords) == knownChunks.end())
@@ -194,6 +196,8 @@ WorldSpace::WorldSpace()
 		workerRunning.push_back(true);
 		t[i] = std::thread(&WorldSpace::threadLoop, this, i);
 	}
+
+	CurrentWorld = this;
 
 	
 }

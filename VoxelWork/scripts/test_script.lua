@@ -4,7 +4,7 @@
 --print("Checking if Node.tick exists:", Node and Node.tick) -- Should print "function: 0x..."
 local a=true
 local lifetime=0.0
-
+print("In Script")
 function easeOutQuad(t)
     return {t[0] * (2 - t[0]),t[1] * (2 - t[1]),t[2] * (2 - t[2])} -- Ease-out quadratic interpolation
 end

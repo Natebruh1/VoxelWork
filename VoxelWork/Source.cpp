@@ -268,6 +268,15 @@ void Update()
 
     // ---Add objects to scene---
     currentScene->addChild(*currentCamera);
+    //Add models to world
+    for (auto& m : ModelLibrary::modelList)
+    {
+        Model* mod = (ModelLibrary::modelList[(m.first)]);
+        currentScene->addChild(*mod);
+
+    }
+
+
 
     //Add test chunk as a child
     currentScene->addChild(*wSpace);

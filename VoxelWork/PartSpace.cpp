@@ -16,6 +16,10 @@ PartSpace::PartSpace() : ChunkSpace()
 	//std::map<std::string, PartSpace> PartSpace::partLibrary;
 }
 
+void PartSpace::serialize(nlohmann::json& data, bool store)
+{
+}
+
 void PartSpace::LoadFromLibrary(std::string partName)
 {
 }
@@ -109,7 +113,7 @@ void PartSpace::RenderPart(std::string partName, node3D& Owner, camera& currentC
 void PartSpace::RenderPartTransformed(std::string partName, node3D& Owner, glm::mat4 transform, camera& currentCamera)
 {
 
-
+	if (partName == "") return; //Early return
 	PartSpace* requestedPart = partLibrary.at(partName);
 	if (requestedPart != nullptr)
 	{
