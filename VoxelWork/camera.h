@@ -15,7 +15,8 @@ public:
     void RotateView(float x, float y);
     float getYaw();
     glm::vec3& getFront();
-    
+    //Block Editing
+    void DeleteClosestBlock();
 private:
     glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 cameraDirection;
