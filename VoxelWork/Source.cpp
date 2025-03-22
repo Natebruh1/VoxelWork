@@ -25,7 +25,7 @@ using namespace LuaCpp::Engine;
 
 // Meta-Game Consts
 const std::string GAMENAME = "Voxel Test";
-const std::string VERSION = "0.0.3";
+const std::string VERSION = "0.0.4";
 
 //
 
