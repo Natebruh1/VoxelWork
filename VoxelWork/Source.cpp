@@ -222,7 +222,9 @@ void processInput(GLFWwindow* window)
     }
 }
 
-
+glm::ivec3 chunkCoord{};
+int chunkGenDist = 2;
+float totalChunkStall = 0.f;
 void Update()
 {
 
@@ -358,19 +360,34 @@ void Update()
 
         //Tick
         Tick();
-        glm::ivec3 chunkCoord = (currentCamera->getPosition()) / 16.f;
-        //chunkCoord.y -= 1;
-        for (int x = -2; x < 3; x++)
+        if (chunkCoord == glm::ivec3((currentCamera->getPosition()) / 16.f)/* && wSpace->getChunk(chunkCoord.x + chunkGenDist, chunkCoord.y + chunkGenDist / 2 - 1, chunkCoord.z + chunkGenDist)*/)
         {
-            for (int y = -2; y < 0; y++)
+            totalChunkStall += deltaTime;
+            if (totalChunkStall > log((chunkGenDist+1.f) * chunkGenDist)*chunkGenDist)
             {
-                for (int z = -2; z < 3; z++)
+                chunkGenDist += 1;
+                chunkGenDist = std::min(chunkGenDist, 6);
+                //totalChunkStall = 0.f;
+            }
+            
+        }
+        else
+        {
+            chunkGenDist = 2;
+            totalChunkStall = 0.f;
+        }
+        //chunkCoord.y -= 1;
+        for (int x = -chunkGenDist; x < chunkGenDist+1; x++)
+        {
+            for (int y = -chunkGenDist; y < chunkGenDist/2; y++)
+            {
+                for (int z = -chunkGenDist; z < chunkGenDist+1; z++)
                 {
                     wSpace->generate(chunkCoord + glm::ivec3(x, y, z));
                 }
             }
         }
-
+        chunkCoord = (currentCamera->getPosition()) / 16.f;
 
 
 
