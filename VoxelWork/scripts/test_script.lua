@@ -34,8 +34,12 @@ function onTick(deltaTime)
     if Model then
         
         lifetime=lifetime+deltaTime
-
+        
         Model:Move(0.0,1.0*deltaTime,0.0)
+       
+        if lifetime>10.0 then
+            Node.AttachScript("scripts/changed_script.lua")
+        end
     else
         print("Error: Model is nil!")
     end

@@ -277,7 +277,7 @@ void Update()
         currentScene->addChild(*mod);
 
     }
-
+    
 
 
     //Add test chunk as a child
@@ -296,13 +296,8 @@ void Update()
     //Set an externally loaded voxel
     testChunk2->setBlock(0, 0, 0, 4);
 
-
-    //Test Model Parts
-    testPart = new PartSpace();
-    testPart->RegisterToLibrary("SpiderHead", "parts/SpiderHead.txt");
-
-    PartSpace testPart2;
-    testPart2.RegisterToLibrary("SpiderLeg", "parts/SpiderLeg.txt");
+    modelLibrary.LoadParts();
+    
     testModel = new node3D();
     testModel->transform = glm::scale(testModel->transform, glm::vec3(1.f, 4.5f, 1.f));
     testModel2 = new node3D();
@@ -489,16 +484,14 @@ void Tick()
     //Update the current scene
     currentScene->deltaTime = deltaTime;
     currentScene->tick();
-    testModelModel.tick();
+    
 }
 glm::mat4 t = glm::mat4(1.f);
 
 void Render()
 {
 
-    t = glm::rotate(t, 0.3f * deltaTime, glm::vec3(0.f, 1.f, 0.f));
+    
     currentScene->render(*currentCamera);
-    testModelModel.render(*currentCamera);
-    //PartSpace::RenderPart("Part", *testModel, *currentCamera);
-    //PartSpace::RenderPartTransformed("SpiderLeg", *testModel2,t, *currentCamera);
+    
 }

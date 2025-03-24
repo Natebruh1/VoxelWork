@@ -101,6 +101,8 @@ void node::attachScript(std::string attachedScript)
 	luaL_openlibs(L); //Open standard lua libraries
 	
 	RegisterFunctions();
+	luaL_unref(L, LUA_REGISTRYINDEX, tickFunctionRef); //Unbind Registered Tick Function
+	tickFunctionRef = LUA_NOREF;
 	runLuaScript(L, attachedScript);
 	scriptIsAttached = true;
 }
@@ -115,6 +117,13 @@ void node::RegisterFunctions()
 
 	lua_pushcclosure(L, lua_tick, 1); //Bind `lua_tick` with this object as an upvalue
 	lua_setfield(L, -2, "tick");
+
+	ptr = static_cast<node**>(lua_newuserdata(L, sizeof(node*)));
+	*ptr = this;  // Store this instance
+
+	lua_pushcclosure(L, lua_AttachScript, 1);
+	lua_setfield(L, -2, "AttachScript");
+	//lua_setfield(L, -2, "ChangeScript");
 
 	lua_setglobal(L, "Node"); //Set table as global "Node"
 }

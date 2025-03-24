@@ -145,7 +145,16 @@ void Model::RegisterFunctions()
     lua_pushcclosure(L, lua_tick, 1);
     lua_setfield(L, -2, "tick");
     
-    lua_setglobal(L, "Node"); // Set table as global "Node"
+
+    
+    nodePtr = static_cast<node**>(lua_newuserdata(L, sizeof(node*)));
+    *nodePtr = this;  // Store this instance
+
+    lua_pushcclosure(L, lua_AttachScript, 1);
+    lua_setfield(L, -2, "AttachScript");
+
+
+    lua_setglobal(L, "Node"); //Set Node
 
 }
 

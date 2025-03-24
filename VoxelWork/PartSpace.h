@@ -12,6 +12,7 @@ public:
     virtual void serialize(nlohmann::json& data, bool store = false) override;
     void LoadFromLibrary(std::string partName);
     void RegisterToLibrary(std::string partName, std::string fileToLoad);
+    void RegisterToLibrary(std::string partName, nlohmann::json& jObj);
     static void RenderPart(std::string partName, node3D& Owner, camera& currentCamera);
     static void RenderPartTransformed(std::string partName, node3D& Owner,glm::mat4 transform, camera& currentCamera);
     static std::map<std::string, PartSpace*> partLibrary;

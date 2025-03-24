@@ -79,6 +79,25 @@ protected:
 		sNode->tickFunctionRef = luaL_ref(L, LUA_REGISTRYINDEX);
 		return 0;
 	}
+	static int lua_AttachScript(lua_State* L)
+	{
+		node** sNodePtr = static_cast<node**>(lua_touserdata(L, lua_upvalueindex(1)));
+		if (!sNodePtr || !(*sNodePtr))
+		{
+			return luaL_error(L, "Noode instance is null");
+
+		}
+		node* sNode = *sNodePtr;
+		if (!lua_isstring(L, 1))
+		{
+			return luaL_error(L, "Expected a string");
+		}
+		std::string scriptPathRef = lua_tostring(L, 1);
+		sNode->attachScript(scriptPathRef);
+
+		return 0; //We're not returning anything from the lua functon
+	}
+
 	void runLuaScript(lua_State* L, std::string script);
 	bool scriptIsAttached = false;
 

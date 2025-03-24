@@ -41,37 +41,7 @@ void PartSpace::RegisterToLibrary(std::string partName, std::string fileToLoad)
 		{
 			std::ifstream f(fileToLoad);
 			nlohmann::json data = nlohmann::json::parse(f);
-			chunkLoadTracker loadTracker;
-			//auto xChunk = data.at("BlockData").begin(); xChunk!= data.at("BlockData").end();++xChunk
-			for (auto& [xKey,xVal] : data.at("BlockData").items())
-			{
-				for (auto& [yKey,yVal] : xVal.items())
-				{
-					for (auto& [zKey,zVal] : yVal.items())
-					{
-						chunk* partChunk = new chunk();
-						bool onOdd = false;
-						uint32 offset = 0;
-						for (size_t i=0;i<zVal.size();i++)
-						{
-							
-							
-							onOdd = !onOdd;
-							if (onOdd)
-							{
-								partChunk->setBlockArray(zVal[i], zVal[i + 1], offset);
-								offset += zVal[i + 1].get<int>();
-							}
-						}
-						//Update the iterators for the chunk
-						auto x_it = stoi(xKey);
-						auto y_it = stoi(yKey);
-						auto z_it = stoi(zKey);
-						addChunk(x_it, y_it, z_it, *partChunk);
-						
-					}
-				}
-			}
+			RegisterToLibrary(partName, data);
 
 		}
 		catch (std::exception e)
@@ -87,12 +57,49 @@ void PartSpace::RegisterToLibrary(std::string partName, std::string fileToLoad)
 	}
 
 
+	
+
+}
+
+void PartSpace::RegisterToLibrary(std::string partName, nlohmann::json& jObj)
+{
+	nlohmann::json data = jObj;
+	chunkLoadTracker loadTracker;
+	//auto xChunk = data.at("BlockData").begin(); xChunk!= data.at("BlockData").end();++xChunk
+	for (auto& [xKey, xVal] : data.at("BlockData").items())
+	{
+		for (auto& [yKey, yVal] : xVal.items())
+		{
+			for (auto& [zKey, zVal] : yVal.items())
+			{
+				chunk* partChunk = new chunk();
+				bool onOdd = false;
+				uint32 offset = 0;
+				for (size_t i = 0; i < zVal.size(); i++)
+				{
+
+
+					onOdd = !onOdd;
+					if (onOdd)
+					{
+						partChunk->setBlockArray(zVal[i], zVal[i + 1], offset);
+						offset += zVal[i + 1].get<int>();
+					}
+				}
+				//Update the iterators for the chunk
+				auto x_it = stoi(xKey);
+				auto y_it = stoi(yKey);
+				auto z_it = stoi(zKey);
+				addChunk(x_it, y_it, z_it, *partChunk);
+
+			}
+		}
+	}
 	tick();
 
 
 	//Add to partLibrary
 	partLibrary[partName] = this;
-
 }
 
 void PartSpace::RenderPart(std::string partName, node3D& Owner, camera& currentCamera)

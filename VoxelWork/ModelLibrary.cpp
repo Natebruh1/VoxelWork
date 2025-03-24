@@ -1,6 +1,7 @@
 #include "ModelLibrary.h"
 #include "Model.h"
 #include "WorldSpace.h"
+#include "PartSpace.h"
 std::unordered_map<std::string, Model*> ModelLibrary::modelList;
 ModelLibrary::ModelLibrary()
 {
@@ -41,6 +42,55 @@ void ModelLibrary::LoadModels()
 		}
 	}
 
+}
+
+void ModelLibrary::LoadParts()
+{
+	std::string path = "./parts";
+	auto aPath = std::filesystem::path(path);
+	if (std::filesystem::is_directory(aPath)) //If we can find the directory
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(path)) //Loop through the contents
+		{
+
+			if (entry.path().extension().string() == ".dat") //If they're dat files
+			{
+				try {
+					//We have a block fil
+					PartSpace* nPartSpace = new PartSpace();
+					loadedParts.push_back(nPartSpace);
+					
+					
+					std::fstream file(entry.path());
+					nlohmann::json jObj;
+					file >> jObj;
+					file.close();
+					std::cout << entry.path().string().substr(8, entry.path().string().size() - 12)<<std::endl;
+					nPartSpace->RegisterToLibrary(entry.path().string().substr(8, entry.path().string().size() - 12), jObj);
+					
+				}
+				catch (std::exception e)
+				{
+					std::ofstream errorFile("errors.log");
+					if (errorFile.is_open())
+					{
+						errorFile << "Error adding model : " << entry.path().filename().string() << std::endl;
+
+						errorFile.close();
+					}
+				}
+			}
+		}
+	}
+}
+
+ModelLibrary::~ModelLibrary()
+{
+	for (auto p : loadedParts)
+	{
+		delete p;
+	}
+	loadedParts.clear();
 }
 
 void ModelLibrary::LoadModel(nlohmann::json& modelJson)
