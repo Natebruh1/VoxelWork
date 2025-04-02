@@ -17,11 +17,12 @@ public:
 	ModelLibrary();
 	void LoadModels();
 	void LoadParts();
+	static Model* LoadModel(std::string path);
 	static std::unordered_map<std::string, Model*> modelList;
 	~ModelLibrary();
 private:
-	void LoadModel(nlohmann::json& modelJson);
-	void ParsePart(nlohmann::json& part,ModelNode* localRoot,Model* baseModel, std::string nameOverride="");
+	static Model* LoadModel(nlohmann::json& modelJson);
+	static void ParsePart(nlohmann::json& part,ModelNode* localRoot,Model* baseModel, std::string nameOverride="");
 	std::vector<PartSpace*> loadedParts;
 
 };

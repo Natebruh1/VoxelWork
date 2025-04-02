@@ -1,7 +1,7 @@
 #pragma once
 #include "PartSpace.h"
 #include <numbers>
-
+#include "WorldSpace.h"
 struct ModelNode
 {
 	std::vector<ModelNode*> children;
@@ -270,7 +270,31 @@ private:
 
             model->addAnimation<glm::vec3>(std::string(animName), targetedPart->localAttachment.getRotation(), glm::vec3(rotAmount[0],rotAmount[1],rotAmount[2]), t);
         }
-        model->playAnimation(animName);
+        if (std::string(animatedProperty) == std::string("position"))
+        {
+            std::vector<double> rotAmount = extractLuaArray(L, 4, double{});
+
+            double t = luaL_checknumber(L, 5); //Duration
+
+            auto partID = extractLuaArray(L, 6, int{});
+            ModelNode* targetedPart = getPartFromID(model, partID);
+
+
+            model->addAnimation<glm::vec3>(std::string(animName), targetedPart->localAttachment.getPosition(), glm::vec3(rotAmount[0], rotAmount[1], rotAmount[2]), t);
+        }
+        if (std::string(animatedProperty) == std::string("scale"))
+        {
+            std::vector<double> rotAmount = extractLuaArray(L, 4, double{});
+
+            double t = luaL_checknumber(L, 5); //Duration
+
+            auto partID = extractLuaArray(L, 6, int{});
+            ModelNode* targetedPart = getPartFromID(model, partID);
+
+
+            model->addAnimation<glm::vec3>(std::string(animName), targetedPart->localAttachment.getScale(), glm::vec3(rotAmount[0], rotAmount[1], rotAmount[2]), t);
+        }
+        //model->playAnimation(animName);
 
         return 0;
     }
@@ -305,7 +329,36 @@ private:
         return 0;
     }
 
+    static int lua_SpawnModel(lua_State* L)
+    {
+        if (!lua_isstring(L, 1))
+        {
+            return luaL_error(L, "Expected a string argument for model name");
+        }
 
+        // Get the string argument (model name)
+        const char* modelName = lua_tostring(L, 1);
+
+        // Call the existing C++ function to create a new model
+        Model* newModel = ModelLibrary::LoadModel(std::string(modelName));  // Pass model name
+        
+        if (Models::models)
+            Models::models->addChild(newModel);
+        if (!newModel)
+        {
+            return luaL_error(L, "Failed to spawn model");
+        }
+
+        // Push the new model as a Lua userdata
+        Model** ptr = static_cast<Model**>(lua_newuserdata(L, sizeof(Model*)));
+        *ptr = newModel;
+
+        //Set the metatable so it behaves like a Model object in Lua
+        luaL_getmetatable(L, "ModelMeta");
+        lua_setmetatable(L, -2);
+
+        return 1;  // Returns 1 value
+    }
 
 
 

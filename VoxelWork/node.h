@@ -41,10 +41,12 @@ public:
 	virtual void tick();
 	virtual void render(camera& currentCamera);
 	virtual node& addChild(node& newChild);
+	virtual node* addChild(node* newChild);
 	virtual node& removeChild(node& childToRemove);
 	void setVisible(bool newVis) { visible = newVis; };
 
 	static float deltaTime;
+	node* getParent() { return parent; }
 public:
 	//LUA
 	void attachScript(std::string attachedScript);

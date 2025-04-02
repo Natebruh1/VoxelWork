@@ -58,7 +58,7 @@ void camera::processInput(GLFWwindow* const& windowRef,float dt)
 	if (glfwGetKey(windowRef, GLFW_KEY_K) == GLFW_PRESS)
 		speed -= dt * 5.f;
 	if (glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_LEFT))
-		DeleteClosestBlock();
+		DeleteBlock();
 }
 
 
@@ -85,7 +85,7 @@ glm::vec3& camera::getFront()
 	return cameraFront;
 }
 
-void camera::DeleteClosestBlock()
+glm::ivec3 camera::ReturnClosestBlock()
 {
 	glm::ivec3 cameraBlockPos = glm::ivec3(floor(getPosition()));
 	glm::ivec3 finalPos = glm::ivec3(floor(getPosition() + getFront() * 8.f));
@@ -130,29 +130,30 @@ void camera::DeleteClosestBlock()
 			}
 			p1 += 2 * dy;
 			p2 -= 2 * dx;
-			if (WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f)))
+			//Check block isn't air
+			if (auto bl = WorldSpace::GetBlockWorld(x0, y0, z0); bl)
 			{
-				//Check block isn't air
-				if (WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->getBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (16 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (16 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (16 - (-z0 % 16)))).id != 0)
+				if (bl->id != 0) //Block Id not air
 				{
 					blockFound = true;
 					break;
 				}
-				
+
 			}
 			else
 			{
-				//Chunk not found
+				//No pointer for block
 				break;
 			}
 		}
 		if (blockFound)
 		{
-			WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (16 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (16 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (16 - (-z0 % 16))),0);
+			//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
+			return glm::ivec3(x0, y0, z0);
 		}
 		else
 		{
-			return;
+			return glm::ivec3(0,0,0);
 		}
 	}
 	else if (dy >= dx && dy >= dz)
@@ -174,10 +175,10 @@ void camera::DeleteClosestBlock()
 			}
 			p1 += 2 * dx;
 			p2 += 2 * dz;
-			if (WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f)))
+			//Check block isn't air
+			if (auto bl = WorldSpace::GetBlockWorld(x0, y0, z0); bl)
 			{
-				//Check block isn't air
-				if (WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->getBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (16 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (16 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (16 - (-z0 % 16)))).id != 0)
+				if (bl->id != 0) //Block id not air
 				{
 					blockFound = true;
 					break;
@@ -186,17 +187,19 @@ void camera::DeleteClosestBlock()
 			}
 			else
 			{
-				//Chunk not found
+				//No pointer for block
 				break;
 			}
 		}
 		if (blockFound)
 		{
-			WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (16 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (16 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (16 - (-z0 % 16))),0);
+			//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
+			//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
+			return glm::ivec3(x0, y0, z0);
 		}
 		else
 		{
-			return;
+			return glm::ivec3(0,0,0);
 		}
 		// Driving axis is Z-axis"
 	}
@@ -219,29 +222,39 @@ void camera::DeleteClosestBlock()
 			}
 			p1 += 2 * dy;
 			p2 += 2 * dx;
-			if (WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f)))
+			
+			//Check block isn't air
+			if (auto bl =WorldSpace::GetBlockWorld(x0,y0,z0); bl)
 			{
-				//Check block isn't air
-				if (WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->getBlock(((x0 % 16)*(x0>=0)) + ((x0<0) * (16 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (16 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (16 - (-z0 % 16)))).id != 0)
+				if (bl->id != 0)
 				{
 					blockFound = true;
 					break;
 				}
-
+				
 			}
 			else
 			{
-				//Chunk not found
+				//No pointer for block
 				break;
 			}
+			
 		}
 		if (blockFound)
 		{
-			WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16)* (x0 >= 0)) + ((x0 < 0) * (16 - (-x0 % 16))), ((y0 % 16)* (y0 >= 0)) + ((y0 < 0) * (16 - (-y0 % 16))), ((z0 % 16)* (z0 >= 0)) + ((z0 < 0) * (16 - (-z0 % 16))),0);
+			//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16)* (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16)* (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16)* (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
+			return glm::ivec3(x0, y0, z0);
 		}
 		else
 		{
-			return;
+			return glm::ivec3(0,0,0);
 		}
 	}
+}
+
+void camera::DeleteBlock()
+{
+	glm::ivec3 c = ReturnClosestBlock();
+	//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
+	WorldSpace::SetBlockWorld(c.x, c.y, c.z, 0);
 }

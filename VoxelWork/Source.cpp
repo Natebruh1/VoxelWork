@@ -31,6 +31,7 @@ const std::string VERSION = "0.0.4";
 
 
 
+
 GLFWwindow* window = nullptr;
 
 void init_GL();
@@ -109,7 +110,8 @@ int main()
     // Create a new camera
     currentCamera = new camera();
 
-
+    //Create models subsection of tree
+    Models::models = new node();
 
 
 
@@ -270,6 +272,7 @@ void Update()
 
     // ---Add objects to scene---
     currentScene->addChild(*currentCamera);
+    currentScene->addChild(Models::models);
     //Add models to world
     for (auto& m : ModelLibrary::modelList)
     {
@@ -357,14 +360,15 @@ void Update()
         Tick();
         if (chunkCoord == glm::ivec3((currentCamera->getPosition()) / 16.f)/* && wSpace->getChunk(chunkCoord.x + chunkGenDist, chunkCoord.y + chunkGenDist / 2 - 1, chunkCoord.z + chunkGenDist)*/)
         {
-            totalChunkStall += deltaTime;
-            if (totalChunkStall > log((chunkGenDist+1.f) * chunkGenDist)*chunkGenDist)
-            {
-                chunkGenDist += 1;
-                chunkGenDist = std::min(chunkGenDist, 6);
-                //totalChunkStall = 0.f;
-            }
-            
+            #ifdef NDEBUG //Only increase render distance in non debug builds
+                totalChunkStall += deltaTime;
+                if (totalChunkStall > log((chunkGenDist+1.f) * chunkGenDist)*chunkGenDist)
+                {
+                    chunkGenDist += 1;
+                    chunkGenDist = std::min(chunkGenDist, 5);
+                    //totalChunkStall = 0.f;
+                }
+            #endif
         }
         else
         {

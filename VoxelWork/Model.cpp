@@ -120,6 +120,9 @@ void Model::RegisterFunctions()
         //Register Set Interpolation Method
         lua_pushcfunction(L, lua_SetAnimationInterpolation);
         lua_setfield(L, -2, "SetAnimationInterpolation");
+
+        lua_pushcfunction(L, lua_SpawnModel);  // Add SpawnModel function
+        lua_setfield(L, -2, "SpawnModel");
     }
 
 

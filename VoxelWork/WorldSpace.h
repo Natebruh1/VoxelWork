@@ -10,6 +10,11 @@ using namespace LuaCpp;
 using namespace LuaCpp::Registry;
 using namespace LuaCpp::Engine;
 
+namespace Models
+{
+    extern node* models;
+}
+
 struct chunkToGenAddress
 {
     glm::ivec3* start;
@@ -27,6 +32,37 @@ public:
     ~WorldSpace();
     virtual void tick() override;
     static WorldSpace* CurrentWorld;
+    static node* getScene() { return CurrentWorld->parent; }
+    static bool SetBlockWorld(int x,int y, int z,uint32_t id)
+    {
+        
+        if (auto ch = WorldSpace::CurrentWorld->getChunk(floor((float)x / 16.f), floor((float)y / 16.f), floor((float)z / 16.f)); ch)
+        {
+           int localX = ((x % 16) + 16) % 16;
+           int localY = ((y % 16) + 16) % 16;
+           int localZ = ((z % 16) + 16) % 16;
+           ch->setBlock(localX, localY, localZ, id);
+           return true;
+        }
+        else
+        {
+            return false; //Chunk not found
+        }
+    }
+    static inline block* GetBlockWorld(int x, int y, int z)
+    {
+        if (auto ch = WorldSpace::CurrentWorld->getChunk(floor((float)x / 16.f), floor((float)y / 16.f), floor((float)z / 16.f)); ch)
+        {
+            int localX = ((x % 16) + 16) % 16;
+            int localY = ((y % 16) + 16) % 16;
+            int localZ = ((z % 16) + 16) % 16;
+            return &(ch->getBlock(localX, localY, localZ));
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
 private:
     //Height
     FastNoiseLite heightNoise;

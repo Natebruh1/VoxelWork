@@ -37,7 +37,7 @@ function onTick(deltaTime)
         
         Model:Move(0.0,1.0*deltaTime,0.0)
        
-        if lifetime>10.0 then
+        if lifetime>4.0 then
             Node.AttachScript("scripts/changed_script.lua")
         end
     else

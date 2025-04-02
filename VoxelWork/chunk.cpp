@@ -390,7 +390,8 @@ void chunk::updateGeom(bool withNeighbour)
 	///// ----PART 2 GREEDYMESH---- /////
 	greedyMeshChunk();
 	prepareRender();
-
+	//vertices.clear();
+	chunkQuads.clear();
 	geomUpdated = false;
 	
 	if (withNeighbour) //If we're not updating because a neighbour told us to

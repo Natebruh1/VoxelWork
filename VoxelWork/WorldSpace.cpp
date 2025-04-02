@@ -4,6 +4,11 @@
 #include "ModelLibrary.h"
 #include "Model.h"
 WorldSpace* WorldSpace::CurrentWorld = nullptr;
+
+namespace Models
+{
+	node* models = nullptr;
+}
 void WorldSpace::generate(glm::ivec3 coords)
 {
 	if (std::find(knownChunks.begin(), knownChunks.end(), coords) == knownChunks.end())

@@ -65,7 +65,7 @@ void ModelLibrary::LoadParts()
 					nlohmann::json jObj;
 					file >> jObj;
 					file.close();
-					std::cout << entry.path().string().substr(8, entry.path().string().size() - 12)<<std::endl;
+					//std::cout << entry.path().string().substr(8, entry.path().string().size() - 12)<<std::endl;
 					nPartSpace->RegisterToLibrary(entry.path().string().substr(8, entry.path().string().size() - 12), jObj);
 					
 				}
@@ -84,6 +84,15 @@ void ModelLibrary::LoadParts()
 	}
 }
 
+Model* ModelLibrary::LoadModel(std::string path)
+{
+	std::fstream file(path);
+	nlohmann::json jObj;
+	file >> jObj;
+	file.close();
+	return LoadModel(jObj);
+}
+
 ModelLibrary::~ModelLibrary()
 {
 	for (auto p : loadedParts)
@@ -93,7 +102,7 @@ ModelLibrary::~ModelLibrary()
 	loadedParts.clear();
 }
 
-void ModelLibrary::LoadModel(nlohmann::json& modelJson)
+Model* ModelLibrary::LoadModel(nlohmann::json& modelJson)
 {
 	//std::cout << modelJson.dump() << std::endl<<std::endl;
 	Model* newModel;
@@ -113,6 +122,7 @@ void ModelLibrary::LoadModel(nlohmann::json& modelJson)
 	//Attach script
 	if (scriptName!="")
 		newModel->attachScript(scriptName);
+	return newModel;
 }
 
 

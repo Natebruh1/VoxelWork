@@ -30,7 +30,8 @@ void node::tick()
 {
 	for (auto& child : children)
 	{
-		if (child->visible) //Only render visible children
+		
+		if (child!=nullptr&&child->visible) //Only render visible children
 		{
 			child->tick();
 		}
@@ -81,6 +82,23 @@ node& node::addChild(node& newChild)
 		}
 		newChild.parent = this;
 		
+	}
+	return newChild;
+}
+
+node* node::addChild(node* newChild)
+{
+	if (!newChild) return nullptr;
+	if (auto search = std::find(children.begin(), children.end(), newChild); search == children.end()) //If we can't find the child in our tree.
+	{
+		children.push_back(newChild);
+		//Remove our newChild from its old parent
+		if (newChild->parent != nullptr)
+		{
+			newChild->parent->removeChild(*newChild);
+		}
+		newChild->parent = this;
+
 	}
 	return newChild;
 }
