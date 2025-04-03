@@ -1,3 +1,9 @@
+/// 
+/// Adapted From :
+///  Joey De Vries
+///  LearnOpenGL
+///  https://learnopengl.com/In-Practice/2D-Game/Rendering-Sprites
+
 #include "ResourceManager.h"
 #include <iostream>
 #include <sstream>

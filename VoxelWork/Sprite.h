@@ -1,4 +1,10 @@
 #pragma once
+///
+/// SpriteRenderer Adapted From :
+///  Joey De Vries
+///  LearnOpenGL
+///  https://learnopengl.com/In-Practice/2D-Game/Rendering-Sprites
+
 #include "node2D.h"
 #include "Shader.h"
 #include "Texture.h"

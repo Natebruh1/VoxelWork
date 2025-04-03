@@ -1,4 +1,8 @@
-
+///
+/// Credit :
+///  Joey De Vries
+///  LearnOpenGL
+///  https://learnopengl.com/In-Practice/2D-Game/Rendering-Sprites
 #include <iostream>
 
 #include "Texture.h"
