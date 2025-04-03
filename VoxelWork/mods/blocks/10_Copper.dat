@@ -1,0 +1,13 @@
+{
+	"Name":"Copper",
+	"Solid":true,
+	"Textures":
+	{
+		"0":"textures/copper.png",
+		"1":"textures/copper.png",
+		"2":"textures/copper.png",
+		"3":"textures/copper.png",
+		"4":"textures/copper.png",
+		"5":"textures/copper.png"
+	}
+}

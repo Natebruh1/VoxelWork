@@ -4,7 +4,7 @@
 #include "ModelLibrary.h"
 #include "Model.h"
 WorldSpace* WorldSpace::CurrentWorld = nullptr;
-
+int WorldSpace::currentHand = 0;
 namespace Models
 {
 	node* models = nullptr;
@@ -125,6 +125,8 @@ WorldSpace::WorldSpace()
 	carver1.SetFrequency(0.03);
 	carver2.SetFrequency(0.01);
 
+	carverCopper.SetFrequency(0.01);
+	carverCopper.SetSeed(20);
 	
 	ctx.AddGlobalVariable("world", num);
 
@@ -150,12 +152,31 @@ WorldSpace::WorldSpace()
 	);
 	blockPalette.push_back(0); //Air
 
+	
+
 	rules.push_back(		// -- CHAMBER CAVERNS -- //
 		[=](int x, int y, int z) {
 			return (carver1.GetNoise((float)x, (float)y, (float)z) > 0.55);
 		}
 	);
 	blockPalette.push_back(0); //Air
+
+	rules.push_back(		// -- CHAMBER CAVERNS CRUST -- //
+		[=](int x, int y, int z) {
+
+			return ((carver1.GetNoise((float)x, (float)y, (float)z) > 0.55) != (carver1.GetNoise((float)x, (float)y + 1, (float)z) > 0.55)) * (rand() % 10 < 3) && (heightNoise.GetNoise((float)x, (float)z) * worldHeight) > y;
+		}
+	);
+	blockPalette.push_back(9); //Strata rock
+
+	rules.push_back(		// -- Copper Chunk -- //
+		[=](int x, int y, int z) {
+
+			return (carverCopper.GetNoise((float)x+10, (float)y, (float)z-10) > 0.97f) && ((heightNoise.GetNoise((float)x, (float)z) * worldHeight) > y);
+		}
+	);
+	blockPalette.push_back(10); //Copper Ore
+
 
 	rules.push_back
 	(

@@ -59,6 +59,8 @@ void camera::processInput(GLFWwindow* const& windowRef,float dt)
 		speed -= dt * 5.f;
 	if (glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_LEFT))
 		DeleteBlock();
+	if (glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_RIGHT))
+		PlaceBlock();
 }
 
 
@@ -85,10 +87,10 @@ glm::vec3& camera::getFront()
 	return cameraFront;
 }
 
-glm::ivec3 camera::ReturnClosestBlock()
+glm::ivec3 camera::ReturnClosestBlock(int offset)
 {
-	glm::ivec3 cameraBlockPos = glm::ivec3(floor(getPosition()));
-	glm::ivec3 finalPos = glm::ivec3(floor(getPosition() + getFront() * 8.f));
+	glm::ivec3 cameraBlockPos = glm::ivec3(floor(getPosition()+ getFront()-1.f));
+	glm::ivec3 finalPos = glm::ivec3(ceil(getPosition() + getFront() * 8.f));
 	int x0 = cameraBlockPos.x;
 	int y0 = cameraBlockPos.y;
 	int z0 = cameraBlockPos.z;
@@ -110,6 +112,7 @@ glm::ivec3 camera::ReturnClosestBlock()
 	z1 > z0 ? zs = 1 : zs = -1;
 
 	glm::ivec3 currentPoint{};
+	std::vector<glm::ivec3> prevPoint;
 	bool blockFound = false;
 	if (dx > dy && dx > dz)
 	{
@@ -130,6 +133,7 @@ glm::ivec3 camera::ReturnClosestBlock()
 			}
 			p1 += 2 * dy;
 			p2 -= 2 * dx;
+			
 			//Check block isn't air
 			if (auto bl = WorldSpace::GetBlockWorld(x0, y0, z0); bl)
 			{
@@ -145,9 +149,17 @@ glm::ivec3 camera::ReturnClosestBlock()
 				//No pointer for block
 				break;
 			}
+			prevPoint.push_back(glm::ivec3(x0, y0, z0));
 		}
 		if (blockFound)
 		{
+			if (offset != 0 && prevPoint.size() > offset)
+			{
+				auto a = prevPoint.size() - 1;
+				z0 = prevPoint[prevPoint.size() - 1 - offset].z;
+				x0 = prevPoint[prevPoint.size() - 1 - offset].x;
+				y0 = prevPoint[prevPoint.size() - 1 - offset].y;
+			}
 			//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
 			return glm::ivec3(x0, y0, z0);
 		}
@@ -180,6 +192,7 @@ glm::ivec3 camera::ReturnClosestBlock()
 			{
 				if (bl->id != 0) //Block id not air
 				{
+					
 					blockFound = true;
 					break;
 				}
@@ -190,11 +203,18 @@ glm::ivec3 camera::ReturnClosestBlock()
 				//No pointer for block
 				break;
 			}
+			prevPoint.push_back(glm::ivec3(x0, y0, z0));
 		}
 		if (blockFound)
 		{
 			//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
 			//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
+			if (offset != 0 && prevPoint.size() > offset)
+			{
+				z0 = prevPoint[prevPoint.size() - 1 - offset].z;
+				x0 = prevPoint[prevPoint.size() - 1 - offset].x;
+				y0 = prevPoint[prevPoint.size() - 1 - offset].y;
+			}
 			return glm::ivec3(x0, y0, z0);
 		}
 		else
@@ -238,10 +258,17 @@ glm::ivec3 camera::ReturnClosestBlock()
 				//No pointer for block
 				break;
 			}
-			
+			prevPoint.push_back(glm::ivec3(x0, y0, z0));
 		}
 		if (blockFound)
 		{
+			if (offset != 0 && prevPoint.size() > offset)
+			{
+				auto a = prevPoint.size() - 1;
+				z0 = prevPoint[prevPoint.size() - 1 - offset].z;
+				x0 = prevPoint[prevPoint.size() - 1 - offset].x;
+				y0 = prevPoint[prevPoint.size() - 1 - offset].y;
+			}
 			//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16)* (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16)* (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16)* (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
 			return glm::ivec3(x0, y0, z0);
 		}
@@ -257,4 +284,10 @@ void camera::DeleteBlock()
 	glm::ivec3 c = ReturnClosestBlock();
 	//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
 	WorldSpace::SetBlockWorld(c.x, c.y, c.z, 0);
+}
+
+void camera::PlaceBlock()
+{
+	glm::ivec3 c = ReturnClosestBlock(1);
+	WorldSpace::SetBlockWorld(c.x, c.y, c.z, WorldSpace::currentHand);
 }

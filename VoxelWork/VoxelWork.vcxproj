@@ -192,17 +192,21 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelLibrary.cpp" />
     <ClCompile Include="node.cpp" />
+    <ClCompile Include="node2D.cpp" />
     <ClCompile Include="node3D.cpp" />
     <ClCompile Include="PartSpace.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="SparseBindlessTextureArray.cpp" />
+    <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="WorldSpace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="sprite.ps" />
+    <None Include="sprite.vs" />
     <Text Include="tri.ps">
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
@@ -272,11 +276,13 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelLibrary.h" />
     <ClInclude Include="node.h" />
+    <ClInclude Include="node2D.h" />
     <ClInclude Include="node3D.h" />
     <ClInclude Include="PartSpace.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SparseBindlessTextureArray.h" />
+    <ClInclude Include="Sprite.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="WorldSpace.h" />

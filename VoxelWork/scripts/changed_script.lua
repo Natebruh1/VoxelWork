@@ -1,2 +1,2 @@
-print("Changed script to New Script")
-Model.SpawnModel("mods/models/spider.dat")
+print("Spider Changed script to New Script")
+--Model.SpawnModel("mods/models/spider.dat")

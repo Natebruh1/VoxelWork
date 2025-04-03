@@ -12,9 +12,12 @@
 #include "PartSpace.h"
 #include "Model.h"
 #include "chunk.h"
+#include "Sprite.h"
 #include "globals.h"
 ModelLibrary modelLibrary;
 
+std::vector<Sprite*> sprites;
+std::vector<Sprite> spritesView;
 
 // LUA Scripting
 #include "LuaCPP/LuaCpp.hpp"
@@ -48,6 +51,8 @@ void Tick();
 void Render();
 void Events();
 unsigned int& genTestTriangle();
+
+void SetupUI();
 
 glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)1280.f / (float)720.f, 0.1f, 30000.0f);
 camera* currentCamera;
@@ -100,7 +105,7 @@ int main()
 
     // Load Shaders into memory
     ResourceManager::LoadShader("tri.vs", "tri.ps", nullptr, "triangle");
-
+    ResourceManager::LoadShader("sprite.vs", "sprite.ps", nullptr, "2D");
     //Add a new chunkSpace
     wSpace = new WorldSpace();
 
@@ -177,10 +182,35 @@ float lastFrame = 0.f; // Time of last frame
 
 
 bool blockPlaced = true;
-bool keyPressed = false;
+//bool keyPressed = false;
 Model testModelModel;
+
+const int UIBarStart = 1;
+const int maxHotbar = 5;
+const float spacing = 400.f;
+const float spacingScale = 0.8f;
+SpriteRenderer* renderer;
+int currentSpriteView = 0;
+int localHand = 0;
+float lerp(float a, float b, float t)
+{
+    return (1.f - t) * a + t * b;
+}
+std::unordered_map<unsigned int, bool> keyPressed;
+bool keySet = false;
 void processInput(GLFWwindow* window)
 {
+    
+    if (!keySet)
+    {
+        //Set keyPressed
+        keySet = true;
+        for (int i = 0; i < 350; i++)
+        {
+            keyPressed[i] = false;
+        }
+
+    }
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
 
@@ -197,49 +227,147 @@ void processInput(GLFWwindow* window)
     currentCamera->processInput(window, deltaTime);
 
 
-    if (!keyPressed && glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) // Temp to demonstrate updateGeom and chunkUpdates
+    if (!keyPressed[GLFW_KEY_P] && glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) // Temp to demonstrate updateGeom and chunkUpdates
     {
 
         if (blockPlaced)
         {
-            testChunk->deleteBlock(0, 0, 0);
-            //testChunk->updateChunkLighting();
-            wSpace->getLightsManager()->setLightUpdated(0);
+            Sprite::UIEnabled = false;
 
 
             blockPlaced = false;
         }
         else
         {
-            testChunk->setBlock(0, 0, 0, 3);
+            Sprite::UIEnabled = true;
 
             blockPlaced = true;
         }
-        keyPressed = true;
+        keyPressed[GLFW_KEY_P] = true;
     }
 
-    if (keyPressed && glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
+    if (keyPressed[GLFW_KEY_P] && glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
     {
-        keyPressed = false;
+        keyPressed[GLFW_KEY_P] = false;
     }
+
+    if (!keyPressed[GLFW_KEY_PERIOD] && glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS)
+    {
+        if (auto sz=BlockLibrary::idBlockLookup.size() - 1;sz > currentSpriteView + 1+maxHotbar)
+        {
+            currentSpriteView += 1;
+            for (int i = currentSpriteView; i < currentSpriteView+maxHotbar; i++)
+            {
+                spritesView[i].setPosition(glm::vec2(lerp(spacing, 1280.f - spacing, (float)(i-currentSpriteView) / (float)(maxHotbar - 1)), 620.f));
+                spritesView[i].renderer = renderer;
+                *sprites[i - currentSpriteView+1] = spritesView[i];
+                //*sprites[i - currentSpriteView]
+            }
+
+        }
+        keyPressed[GLFW_KEY_PERIOD] = true;
+
+    }
+    if (keyPressed[GLFW_KEY_PERIOD] && glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_RELEASE)
+    {
+        keyPressed[GLFW_KEY_PERIOD] = false;
+    }
+    if (!keyPressed[GLFW_KEY_COMMA] && glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS)
+    {
+        if (currentSpriteView - 1 >=0)
+        {
+            currentSpriteView -= 1;
+            for (int i = currentSpriteView; i < currentSpriteView + maxHotbar; i++)
+            {
+                spritesView[i].setPosition(glm::vec2(lerp(spacing, 1280.f - spacing, (float)(i - currentSpriteView) / (float)(maxHotbar - 1)), 620.f));
+                spritesView[i].renderer = renderer;
+                *sprites[i - currentSpriteView + 1] = spritesView[i];
+                //*sprites[i - currentSpriteView]
+            }
+
+        }
+        keyPressed[GLFW_KEY_COMMA] = true;
+
+    }
+    if (keyPressed[GLFW_KEY_COMMA] && glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_RELEASE)
+    {
+        keyPressed[GLFW_KEY_COMMA] = false;
+
+
+    }
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    {
+        localHand = 0;
+    }
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    {
+        localHand = 1;
+    }
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    {
+        localHand = 2;
+    }
+    if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+    {
+        localHand = 3;
+    }
+    if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
+    {
+        localHand = 4;
+    }
+
 }
 
 glm::ivec3 chunkCoord{};
 int chunkGenDist = 2;
 float totalChunkStall = 0.f;
+
+
+
+void SetupUI()
+{
+    //Setup Sprite Renderer
+    renderer = new SpriteRenderer(*ResourceManager::GetShader("2D"));
+
+    //Bar Back
+    Sprite* spr = new Sprite();
+    spr->setScale(glm::vec2(6.5f, 4.5f));
+    spr->setPosition(glm::vec2(spacing * 0.9f, 600.f)); //This works
+    spr->SetTexture("textures/barBack.png"); //This line definitely works 
+    sprites.push_back(spr);
+    spr->renderer = renderer;
+
+    //Setup Blocks
+    
+    for (uint16_t i = 0; i < BlockLibrary::idBlockLookup.size()-1; i++)
+    {
+        Sprite* spr = new Sprite();
+        spr->setScale(glm::vec2(0.5f, 0.5f));
+        spr->setPosition(glm::vec2(lerp(spacing,1280.f-spacing,(float)(i)/(float)(maxHotbar-1)), 620.f)); //This works
+        spr->SetTexture(BlockLibrary::BlockTextures[BlockLibrary::idBlockLookup[i+UIBarStart]][0]); //This line definitely works 
+        spritesView.push_back(*spr);
+        if (i<maxHotbar)
+            sprites.push_back(spr);
+        spr->renderer = renderer;
+    }
+
+    
+}
+
+
 void Update()
 {
 
 
 
     //Select the triangle shader
-    unsigned int testTriVAO = genTestTriangle();
+    //unsigned int testTriVAO = genTestTriangle();
     glm::mat4 trans = glm::mat4(1.0f);
 
     //Set the shader uniforms for view and projection
     float totalCount = 0.f;
-
-    bool chunkMade = false;
+    
+    /*bool chunkMade = false;
     testChunk = new chunk();
     testChunk->createFullChunk();
 
@@ -268,16 +396,30 @@ void Update()
     testChunk->setBlock(1, 0, 3, 2);
     testChunk->deleteBlock(5, 1, 0);
     testChunk->deleteBlock(0, 1, 5);
-    testChunk->deleteBlock(0, 1, 6);
+    testChunk->deleteBlock(0, 1, 6);*/
 
-    // ---Add objects to scene---
+
+
+
+    // ---------------------------- //
+    // --- Add objects to scene --- //
+    // ---------------------------- //
+    
+    SetupUI();
+    for (auto& spr : sprites)
+    {
+        currentScene->addChild(spr);
+    }
+    //currentScene->addChild(sprites[0]);
     currentScene->addChild(*currentCamera);
     currentScene->addChild(Models::models);
+    
+    
     //Add models to world
     for (auto& m : ModelLibrary::modelList)
     {
         Model* mod = (ModelLibrary::modelList[(m.first)]);
-        currentScene->addChild(*mod);
+        Models::models->addChild(*mod);
 
     }
     
@@ -287,17 +429,17 @@ void Update()
     currentScene->addChild(*wSpace);
 
     //Generate Chunk from ChunkSpace
-    wSpace->addChunk(0, 0, 0, *testChunk);
+    //wSpace->addChunk(0, 0, 0, *testChunk);
 
 
 
 
-    chunk* testChunk2 = wSpace->addChunk(0, 1, 0); //Add chunk by default to chunkSpace
-    testChunk2->createFullChunk();
+    //chunk* testChunk2 = wSpace->addChunk(0, 1, 0); //Add chunk by default to chunkSpace
+    //testChunk2->createFullChunk();
 
 
     //Set an externally loaded voxel
-    testChunk2->setBlock(0, 0, 0, 4);
+    //testChunk2->setBlock(0, 0, 0, 4);
 
     modelLibrary.LoadParts();
     
@@ -485,6 +627,7 @@ void Events()
 
 void Tick()
 {
+    WorldSpace::currentHand = localHand + currentSpriteView+1;
     //Update the current scene
     currentScene->deltaTime = deltaTime;
     currentScene->tick();

@@ -33,6 +33,7 @@ public:
     virtual void tick() override;
     static WorldSpace* CurrentWorld;
     static node* getScene() { return CurrentWorld->parent; }
+    static int currentHand;
     static bool SetBlockWorld(int x,int y, int z,uint32_t id)
     {
         
@@ -68,6 +69,7 @@ private:
     FastNoiseLite heightNoise;
     FastNoiseLite carver1; //Chamber Caverns
     FastNoiseLite carver2;
+    FastNoiseLite carverCopper;
     const float worldHeight = 48.f;
 
 

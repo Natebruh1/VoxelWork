@@ -16,8 +16,9 @@ public:
     float getYaw();
     glm::vec3& getFront();
     //Block Editing
-    glm::ivec3 ReturnClosestBlock();
+    glm::ivec3 ReturnClosestBlock(int offset=0);
     void DeleteBlock();
+    void PlaceBlock();
 private:
     glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 cameraDirection;

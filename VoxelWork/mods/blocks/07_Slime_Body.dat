@@ -1,0 +1,13 @@
+{
+	"Name":"Slime_Body",
+	"Solid":true,
+	"Textures":
+	{
+		"0":"textures/SlimeBody.png",
+		"1":"textures/SlimeBody.png",
+		"2":"textures/SlimeBody.png",
+		"3":"textures/SlimeBody.png",
+		"4":"textures/SlimeBody.png",
+		"5":"textures/SlimeBody.png"
+	}
+}

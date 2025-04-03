@@ -1,0 +1,27 @@
+{
+  "name":"SlimeSpawner",
+  "Root":
+  {
+    "Parts":
+    {
+      "SlimeSpawner":
+      {
+	"name":"dummy",
+        "Position":[0.0,0.0,-20.0],
+        "Rotation":[0.0,0.0,0.0],
+        "Scale":[1.0,1.0,1.0],
+        "Animations":
+        {
+          
+        },
+        "Children":
+        {
+         
+        
+        }
+      }
+    }
+   
+  },
+  "Script":"scripts/slime_spawner.lua"
+}

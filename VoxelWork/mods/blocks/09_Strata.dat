@@ -1,0 +1,13 @@
+{
+	"Name":"Strata",
+	"Solid":true,
+	"Textures":
+	{
+		"0":"textures/Strata.png",
+		"1":"textures/Strata.png",
+		"2":"textures/Strata.png",
+		"3":"textures/Strata.png",
+		"4":"textures/Strata.png",
+		"5":"textures/Strata.png"
+	}
+}

@@ -12,14 +12,16 @@ node::node()
 node::~node()
 {
 	
-	for (int i = 0;i<children.size();i++)
+	while (children.size()>0)
 	{
-		if (children[0] != nullptr)
+		node* child = children.back();  // Get the last element
+		if (child != nullptr)
 		{
-			delete children[0];
+			delete child;  // Delete safely
 		}
+		if (children.size()>0)
+			children.pop_back();  // Remove from vector
 	}
-	children.clear();
 	if (parent != nullptr)
 	{
 		parent->removeChild(*this);
@@ -28,14 +30,16 @@ node::~node()
 
 void node::tick()
 {
-	for (auto& child : children)
+	for (size_t i = 0; i < children.size(); ++i)
 	{
-		
-		if (child!=nullptr&&child->visible) //Only render visible children
+		node* child = children[i]; // Get the current child
+
+		if (child != nullptr && child->visible)
 		{
 			child->tick();
 		}
 
+		// If children was resized, this loop will still continue correctly
 	}
 
 	//Script Tick
