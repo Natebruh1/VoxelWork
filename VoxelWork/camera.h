@@ -37,6 +37,9 @@ private:
     float pitch=0.f;
 
 
-    
+    bool RightPressed = false;
+    bool LeftPressed = false;
+    bool raying = false;
+    bool oPressed = false;
 };
 

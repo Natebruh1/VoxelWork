@@ -192,10 +192,7 @@ const float spacingScale = 0.8f;
 SpriteRenderer* renderer;
 int currentSpriteView = 0;
 int localHand = 0;
-float lerp(float a, float b, float t)
-{
-    return (1.f - t) * a + t * b;
-}
+
 std::unordered_map<unsigned int, bool> keyPressed;
 bool keySet = false;
 void processInput(GLFWwindow* window)
@@ -351,7 +348,12 @@ void SetupUI()
         spr->renderer = renderer;
     }
 
-    
+    //Setup Crosshair
+    Sprite* spr2 = new Sprite();
+    spr2->setPosition(glm::vec2((1280.f / 2.f) - 4.f, (720.f / 2.f) - 4.f));
+    spr2->SetTexture("textures/Crosshair.png"); //This line definitely works 
+    sprites.push_back(spr2);
+    spr2->renderer = renderer;
 }
 
 

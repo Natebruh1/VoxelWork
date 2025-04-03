@@ -57,10 +57,45 @@ void camera::processInput(GLFWwindow* const& windowRef,float dt)
 		speed += dt * 5.f;
 	if (glfwGetKey(windowRef, GLFW_KEY_K) == GLFW_PRESS)
 		speed -= dt * 5.f;
-	if (glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_LEFT))
-		DeleteBlock();
-	if (glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_RIGHT))
-		PlaceBlock();
+
+	if (raying)
+	{
+		LeftPressed = false;
+		RightPressed = false;
+		if (glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_LEFT))
+			DeleteBlock();
+
+		if (glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_RIGHT))
+			PlaceBlock();
+	}
+	else
+	{
+		if (!LeftPressed && glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_LEFT))
+		{
+			DeleteBlock();
+			LeftPressed = true;
+		}
+		if (LeftPressed && glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+			LeftPressed = false;
+		if (!RightPressed && glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_RIGHT))
+		{
+			PlaceBlock();
+			RightPressed = true;
+		}
+		if (RightPressed && glfwGetMouseButton(windowRef, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
+			RightPressed = false;
+	}
+	
+
+
+	if (oPressed==false && glfwGetKey(windowRef, GLFW_KEY_O) == GLFW_PRESS) //Toggle building ray
+	{
+		oPressed = true;
+		raying = !raying;
+	}
+	if (oPressed == true && glfwGetKey(windowRef, GLFW_KEY_O) == GLFW_RELEASE)
+		oPressed = false;
+		
 }
 
 
@@ -281,13 +316,58 @@ glm::ivec3 camera::ReturnClosestBlock(int offset)
 
 void camera::DeleteBlock()
 {
-	glm::ivec3 c = ReturnClosestBlock();
+	glm::vec3 cameraBlockPos = glm::vec3(getPosition());
+	glm::vec3 finalPos = glm::vec3(getPosition() + getFront() * 8.f);
+	std::vector<glm::ivec3> prevBlocks;
+	for (int step = 0; step < 10; step++)
+	{
+		glm::ivec3 blockPos = glm::ivec3(0, 0, 0);
+		auto fract = glm::mix(cameraBlockPos, finalPos, step / 10.f);
+		blockPos = glm::floor(fract);
+		if (WorldSpace::GetBlockWorld(blockPos.x, blockPos.y, blockPos.z)->id == 0)
+		{
+			prevBlocks.push_back(blockPos);
+		}
+		else
+		{
+			WorldSpace::SetBlockWorld(blockPos.x, blockPos.y, blockPos.z, 0);
+		}
+	}
+
+	//glm::ivec3 c = ReturnClosestBlock();
 	//WorldSpace::CurrentWorld->getChunk(floor((float)x0 / 16.f), floor((float)y0 / 16.f), floor((float)z0 / 16.f))->setBlock(((x0 % 16) * (x0 >= 0)) + ((x0 < 0) * (15 - (-x0 % 16))), ((y0 % 16) * (y0 >= 0)) + ((y0 < 0) * (15 - (-y0 % 16))), ((z0 % 16) * (z0 >= 0)) + ((z0 < 0) * (15 - (-z0 % 16))),0);
-	WorldSpace::SetBlockWorld(c.x, c.y, c.z, 0);
+	//WorldSpace::SetBlockWorld(c.x, c.y, c.z, 0);
 }
 
 void camera::PlaceBlock()
 {
-	glm::ivec3 c = ReturnClosestBlock(1);
-	WorldSpace::SetBlockWorld(c.x, c.y, c.z, WorldSpace::currentHand);
+	glm::vec3 cameraBlockPos = glm::vec3(getPosition());
+	glm::vec3 finalPos = glm::vec3(getPosition() + getFront() * 8.f);
+	std::vector<glm::ivec3> prevBlocks;
+	for (int step = 0; step < 10; step++)
+	{
+		glm::ivec3 blockPos = glm::ivec3(0, 0, 0);
+		auto fract = glm::mix(cameraBlockPos, finalPos, step / 10.f);
+		blockPos = glm::floor(fract);
+		if (WorldSpace::GetBlockWorld(blockPos.x, blockPos.y, blockPos.z)->id == 0)
+		{
+			prevBlocks.push_back(blockPos);
+		}
+		else
+		{
+			if (prevBlocks.size() > 0)
+			{
+				//Place on previous block
+				WorldSpace::SetBlockWorld(prevBlocks.back().x, prevBlocks.back().y, prevBlocks.back().z, WorldSpace::currentHand);
+			}
+			else
+			{
+				//Place on our current block
+				WorldSpace::SetBlockWorld(blockPos.x, blockPos.y, blockPos.z, WorldSpace::currentHand);
+			}
+			
+		}
+	}
+	//glm::ivec3 c = ReturnClosestBlock(1);
+	//WorldSpace::SetBlockWorld(c.x, c.y, c.z, WorldSpace::currentHand);
 }
